@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, Response
 
 from .documents import DocumentError
 from .providers import ProviderError
-from .schemas import BatchEntry, BatchResult, ExtractionResult, ReviewRequest, ReviewResult
+from .schemas import BatchEntry, BatchResult, ExtractionResult, Item, ReviewRequest, ReviewResult
 from .service import extract_document
 from .settings import Settings
 from .validation import validate_financial
@@ -127,7 +127,10 @@ async def export_csv(reviewed: ReviewResult) -> Response:
             "item_total",
         ]
     )
-    for item in doc.items or [None]:
+    rows: list[Item | None] = list(doc.items)
+    if not rows:
+        rows.append(None)
+    for item in rows:
         values = [
             doc.document_type,
             doc.issuer_name,
