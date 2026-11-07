@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from io import BytesIO
 
-import pymupdf
+import pypdfium2 as pdfium
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 MAX_IMAGE_PIXELS = 12_000_000
@@ -42,24 +42,28 @@ def prepare_document(data: bytes, content_type: str | None, max_bytes: int) -> P
 
     if detected == "application/pdf":
         try:
-            with pymupdf.open(stream=data, filetype="pdf") as doc:
-                if doc.needs_pass:
-                    raise DocumentError("Encrypted PDFs are not supported")
-                if doc.page_count != 1:
+            pdf = pdfium.PdfDocument(data)
+            try:
+                if len(pdf) != 1:
                     raise DocumentError("Only single-page PDFs are supported")
-                page = doc.load_page(0)
-                rect = page.rect
-                if rect.width <= 0 or rect.height <= 0:
-                    raise DocumentError("Invalid PDF dimensions")
-                scale = min(1.6, (MAX_RENDER_PIXELS / (rect.width * rect.height)) ** 0.5)
-                if scale <= 0:
-                    raise DocumentError("Invalid PDF rendering scale")
-                pixmap = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False)
-                image_data = pixmap.tobytes("png")
+                page = pdf[0]
+                try:
+                    width, height = page.get_width(), page.get_height()
+                    if width <= 0 or height <= 0:
+                        raise DocumentError("Invalid PDF dimensions")
+                    scale = min(1.6, (MAX_RENDER_PIXELS / (width * height)) ** 0.5)
+                    image = page.render(scale=scale).to_pil()
+                    buffer = BytesIO()
+                    image.save(buffer, format="PNG")
+                    image_data = buffer.getvalue()
+                finally:
+                    page.close()
+            finally:
+                pdf.close()
         except DocumentError:
             raise
         except Exception as exc:
-            raise DocumentError("Unreadable or corrupt PDF") from exc
+            raise DocumentError("Unreadable, encrypted or corrupt PDF") from exc
     else:
         image_data = data
     try:
