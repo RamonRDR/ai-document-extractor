@@ -104,6 +104,7 @@ class OpenAIProvider:
     def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None) -> None:
         self.settings = settings
         self.client = client
+        self.last_usage: dict[str, int] | None = None
 
     async def extract(self, document: PreparedDocument) -> FinancialDocument:
         if not self.settings.api_key:
@@ -158,7 +159,24 @@ class OpenAIProvider:
             fields = json.loads(content)
             if not isinstance(fields, dict):
                 raise ValueError("Expected object response")
-            return FinancialDocument.model_validate(mark_provenance(fields, Origin.EXTRACTED))
+            if set(fields) != set(response_json_schema()["required"]):
+                raise ValueError("Incomplete or unexpected provider fields")
+            parsed = FinancialDocument.model_validate(mark_provenance(fields, Origin.EXTRACTED))
+            usage = payload.get("usage")
+            if isinstance(usage, dict):
+                input_tokens = usage.get("prompt_tokens")
+                output_tokens = usage.get("completion_tokens")
+                if (
+                    isinstance(input_tokens, int)
+                    and isinstance(output_tokens, int)
+                    and input_tokens >= 0
+                    and output_tokens >= 0
+                ):
+                    self.last_usage = {
+                        "prompt_tokens": input_tokens,
+                        "completion_tokens": output_tokens,
+                    }
+            return parsed
         except httpx.TimeoutException as exc:
             raise ProviderError("AI provider timed out", 504) from exc
         except httpx.HTTPError as exc:

@@ -1,5 +1,6 @@
 """Brazilian identifier and decimal parsing helpers."""
 
+import re
 from decimal import Decimal, InvalidOperation
 
 
@@ -45,6 +46,8 @@ def parse_money(value: object) -> Decimal | None:
 
 
 def valid_cnpj(cnpj: str) -> bool:
+    if re.fullmatch(r"(?:[0-9]{14}|[0-9]{2}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2})", cnpj) is None:
+        return False
     digits = "".join(ch for ch in cnpj if ch.isdigit())
     if len(digits) != 14 or len(set(digits)) == 1:
         return False

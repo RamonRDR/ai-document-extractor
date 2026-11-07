@@ -7,6 +7,7 @@ import argparse
 import asyncio
 import json
 import os
+from decimal import Decimal
 from pathlib import Path
 from time import perf_counter
 
@@ -43,6 +44,10 @@ async def evaluate(
     matched = 0
     total_fields = 0
     latency: list[int] = []
+    estimated_cost = Decimal("0")
+    costed = 0
+    input_rate = Decimal(os.getenv("AI_INPUT_USD_PER_MILLION", "0"))
+    output_rate = Decimal(os.getenv("AI_OUTPUT_USD_PER_MILLION", "0"))
     provider = OpenAIProvider(Settings.from_env()) if mode == "live" else None
     for index, case in enumerate(selected):
         data = render(case)
@@ -55,6 +60,13 @@ async def evaluate(
             result = await extract_document(data, mime, "openai", Settings.from_env(), provider)
             actual = result.document
             latency.append(result.processing_ms)
+            if provider.last_usage and input_rate > 0 and output_rate > 0:
+                usage = provider.last_usage
+                estimated_cost += (
+                    Decimal(usage["prompt_tokens"]) * input_rate
+                    + Decimal(usage["completion_tokens"]) * output_rate
+                ) / Decimal(1_000_000)
+                costed += 1
             flagged += int(result.needs_review)
             current, available = _accuracy(
                 actual.model_dump(mode="json"), case.expected.model_dump(mode="json")
@@ -80,12 +92,16 @@ async def evaluate(
         if mode == "live" and total_fields
         else None,
         "mean_document_processing_ms": round(sum(latency) / len(latency)) if latency else None,
-        "cost_per_document_usd": None,
+        "cost_per_document_usd": (
+            float(round(estimated_cost / checked, 6))
+            if mode == "live" and costed == checked and checked > 0
+            else None
+        ),
         "caveat": "fixture mode does not run a model or measure extraction accuracy"
         if mode != "live"
         else (
             "live mode uses provider; reserved budget is a user-supplied ceiling, "
-            "not measured billing"
+            "not measured billing; token-price estimate if configured"
         ),
     }
     return output

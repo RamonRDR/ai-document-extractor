@@ -83,7 +83,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ```
 
-The **30-case fixture evaluation** validates decoding, schemas and financial rules. Its model accuracy and model cost are `null`: it does not run real AI. Optional, *manual* real-model evaluation requires `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, a provider key, and explicit positive dollar reservation parameters. Example for an authorized budget: `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Budget parameters reserve an estimated ceiling, **not enforce actual provider billing**. Use real provider billing for authoritative costs. Never run this command automatically.
+The **30-case fixture evaluation** validates decoding, schemas and financial rules. Its model accuracy and model cost are `null`: it does not run real AI. Optional, *manual* real-model evaluation requires `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, a provider key, and explicit positive dollar reservation parameters. Example for an authorized budget: `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Budget parameters reserve an estimated ceiling, **not enforce actual provider billing**. Model costs can optionally be estimated from returned token usage by setting `AI_INPUT_USD_PER_MILLION` and `AI_OUTPUT_USD_PER_MILLION` to current model rates. Unavailable usage leaves costs null. Use real provider billing for authoritative costs. Never run this command automatically.
 
 ## CI / security / limitations
 

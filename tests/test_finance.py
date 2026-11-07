@@ -36,6 +36,7 @@ def test_cnpj() -> None:
     assert not valid_cnpj("11.222.333/0001-82")
     assert not valid_cnpj("00.000.000/0000-00")
     assert not valid_cnpj("123")
+    assert not valid_cnpj("11-222-333-0001-81")
 
 
 def test_date_and_missing() -> None:
