@@ -11,10 +11,18 @@ from evaluation.synthetic import cases, render
 def test_all_30_synthetic_cases() -> None:
     suite = cases()
     assert len(suite) == 30
-    assert {case.layout for case in suite} == {"compact", "wide", "dense", "header-left", "centered"}
+    assert {case.layout for case in suite} == {
+        "compact",
+        "wide",
+        "dense",
+        "header-left",
+        "centered",
+    }
     assert {case.format for case in suite} == {"pdf", "png", "jpeg"}
     for case in suite:
-        content_type = {"pdf": "application/pdf", "png": "image/png", "jpeg": "image/jpeg"}[case.format]
+        content_type = {"pdf": "application/pdf", "png": "image/png", "jpeg": "image/jpeg"}[
+            case.format
+        ]
         prepared = prepare_document(render(case), content_type, 5_242_880)
         assert prepared.image.startswith(b"\x89PNG")
         assert not validate_financial(case.expected)

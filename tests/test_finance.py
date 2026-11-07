@@ -57,9 +57,13 @@ def test_strict_schema() -> None:
 
 def test_mismatched_totals_and_inference() -> None:
     document = FinancialDocument(
-        document_type="invoice", issuer_name="FICTIONAL COMPANY",
-        issue_date="2026-01-15", currency="BRL",
-        subtotal="20", total="30", provenance={"total": Origin.INFERRED},
+        document_type="invoice",
+        issuer_name="FICTIONAL COMPANY",
+        issue_date="2026-01-15",
+        currency="BRL",
+        subtotal="20",
+        total="30",
+        provenance={"total": Origin.INFERRED},
         items=[{"description": "Synthetic", "quantity": "2", "unit_price": "5", "total": "9"}],
     )
     codes = {issue.code for issue in validate_financial(document)}
@@ -68,8 +72,14 @@ def test_mismatched_totals_and_inference() -> None:
 
 def test_correct_calculations() -> None:
     document = FinancialDocument(
-        document_type="receipt", issuer_name="Example", issue_date="2026-01-15",
-        subtotal="150", discount="10", tax="5", surcharge="1", total="146",
+        document_type="receipt",
+        issuer_name="Example",
+        issue_date="2026-01-15",
+        subtotal="150",
+        discount="10",
+        tax="5",
+        surcharge="1",
+        total="146",
         items=[{"description": "A", "quantity": "2", "unit_price": "75", "total": "150"}],
     )
     assert not validate_financial(document)

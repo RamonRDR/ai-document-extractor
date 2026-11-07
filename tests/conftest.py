@@ -3,8 +3,8 @@
 from io import BytesIO
 
 import pytest
-from PIL import Image
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from document_extractor.api import app
 

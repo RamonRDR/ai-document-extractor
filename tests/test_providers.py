@@ -6,12 +6,23 @@ import httpx
 import pytest
 
 from document_extractor.documents import PreparedDocument
-from document_extractor.providers import DemoProvider, OpenAIProvider, ProviderError, response_json_schema
+from document_extractor.providers import (
+    DemoProvider,
+    OpenAIProvider,
+    ProviderError,
+    response_json_schema,
+)
 from document_extractor.settings import Settings
 
 
 def settings() -> Settings:
-    return Settings(api_key="fake-test-token", ai_model="test-model", ai_timeout_seconds=1, max_upload_bytes=5_242_880, max_batch_files=5)
+    return Settings(
+        api_key="fake-test-token",
+        ai_model="test-model",
+        ai_timeout_seconds=1,
+        max_upload_bytes=5_242_880,
+        max_batch_files=5,
+    )
 
 
 @pytest.mark.asyncio
@@ -32,20 +43,30 @@ async def test_structured_response() -> None:
         return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(values)}}]})
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        doc = await OpenAIProvider(settings(), client).extract(PreparedDocument(b"data", "image/png"))
+        doc = await OpenAIProvider(settings(), client).extract(
+            PreparedDocument(b"data", "image/png")
+        )
     assert str(doc.total) == "30.50"
 
 
 @pytest.mark.asyncio
 async def test_invalid_response() -> None:
-    async with httpx.AsyncClient(transport=httpx.MockTransport(lambda req: httpx.Response(200, json={"choices": [{"message": {"content": "{BAD JSON"}}]}))) as client:
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(
+            lambda req: httpx.Response(
+                200, json={"choices": [{"message": {"content": "{BAD JSON"}}]}
+            )
+        )
+    ) as client:
         with pytest.raises(ProviderError, match="invalid structured"):
             await OpenAIProvider(settings(), client).extract(PreparedDocument(b"x", "image/png"))
 
 
 @pytest.mark.asyncio
 async def test_provider_down() -> None:
-    async with httpx.AsyncClient(transport=httpx.MockTransport(lambda req: httpx.Response(503))) as client:
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(lambda req: httpx.Response(503))
+    ) as client:
         with pytest.raises(ProviderError, match="unavailable"):
             await OpenAIProvider(settings(), client).extract(PreparedDocument(b"x", "image/png"))
 

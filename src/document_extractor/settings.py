@@ -13,7 +13,7 @@ class Settings:
     max_batch_files: int
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         timeout = float(os.getenv("AI_TIMEOUT_SECONDS", "20"))
         max_upload = int(os.getenv("MAX_UPLOAD_BYTES", "5242880"))
         max_batch = int(os.getenv("MAX_BATCH_FILES", "5"))

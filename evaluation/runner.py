@@ -7,7 +7,6 @@ import argparse
 import asyncio
 import json
 import os
-from dataclasses import asdict
 from pathlib import Path
 from time import perf_counter
 
@@ -17,15 +16,25 @@ from document_extractor.service import extract_document
 from document_extractor.settings import Settings
 from document_extractor.validation import validate_financial
 
-from .synthetic import Case, cases, render
+from .synthetic import cases, render
 
 
 def _accuracy(actual: dict[str, object], expected: dict[str, object]) -> tuple[int, int]:
-    fields = ("document_type", "issuer_name", "issuer_cnpj", "issue_date", "document_number", "currency", "total")
+    fields = (
+        "document_type",
+        "issuer_name",
+        "issuer_cnpj",
+        "issue_date",
+        "document_number",
+        "currency",
+        "total",
+    )
     return (sum(actual.get(field) == expected.get(field) for field in fields), len(fields))
 
 
-async def evaluate(mode: str, limit: int, budget: float, rate_per_document: float) -> dict[str, object]:
+async def evaluate(
+    mode: str, limit: int, budget: float, rate_per_document: float
+) -> dict[str, object]:
     selected = cases()[:limit]
     started = perf_counter()
     checked = 0
@@ -60,14 +69,21 @@ async def evaluate(mode: str, limit: int, budget: float, rate_per_document: floa
     output: dict[str, object] = {
         "mode": mode,
         "synthetic_cases_checked": checked,
-        "format_counts": {extension: sum(case.format == extension for case in selected) for extension in ("png", "jpeg", "pdf")},
+        "format_counts": {
+            extension: sum(case.format == extension for case in selected)
+            for extension in ("png", "jpeg", "pdf")
+        },
         "financially_valid_percent": round(100 * valid / checked, 2) if checked else None,
         "review_required_percent": round(100 * flagged / checked, 2) if checked else None,
         "elapsed_ms": round((perf_counter() - started) * 1000),
-        "model_field_accuracy": round(100 * matched / total_fields, 2) if mode == "live" and total_fields else None,
+        "model_field_accuracy": round(100 * matched / total_fields, 2)
+        if mode == "live" and total_fields
+        else None,
         "mean_document_processing_ms": round(sum(latency) / len(latency)) if latency else None,
         "cost_per_document_usd": None,
-        "caveat": "fixture mode does not run a model or measure extraction accuracy" if mode != "live" else "live mode uses provider; reserved budget is a user-supplied ceiling, not measured billing",
+        "caveat": "fixture mode does not run a model or measure extraction accuracy"
+        if mode != "live"
+        else "live mode uses provider; reserved budget is a user-supplied ceiling, not measured billing",
     }
     return output
 
@@ -86,10 +102,19 @@ def main() -> None:
         if os.getenv("ALLOW_PAID_AI") != "1" or os.getenv("EVAL_LIVE") != "1":
             parser.error("Live evaluation requires ALLOW_PAID_AI=1 and EVAL_LIVE=1")
         if arguments.budget_usd <= 0 or arguments.max_usd_per_document <= 0:
-            parser.error("Live evaluation requires positive explicit budget and reservation per document")
+            parser.error(
+                "Live evaluation requires positive explicit budget and reservation per document"
+            )
         if arguments.max_documents * arguments.max_usd_per_document > arguments.budget_usd:
             parser.error("Budget must cover reserved ceiling for all documents")
-    report = asyncio.run(evaluate(arguments.mode, arguments.max_documents, arguments.budget_usd, arguments.max_usd_per_document))
+    report = asyncio.run(
+        evaluate(
+            arguments.mode,
+            arguments.max_documents,
+            arguments.budget_usd,
+            arguments.max_usd_per_document,
+        )
+    )
     path = Path(arguments.report)
     path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

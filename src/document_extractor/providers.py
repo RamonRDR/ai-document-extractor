@@ -86,7 +86,14 @@ class DemoProvider:
             "tax": None,
             "surcharge": None,
             "total": "140.00",
-            "items": [{"description": "Synthetic service", "quantity": "2", "unit_price": "75.00", "total": "150.00"}],
+            "items": [
+                {
+                    "description": "Synthetic service",
+                    "quantity": "2",
+                    "unit_price": "75.00",
+                    "total": "150.00",
+                }
+            ],
         }
         return FinancialDocument.model_validate(mark_provenance(fields, Origin.DEMO))
 
@@ -117,18 +124,32 @@ class OpenAIProvider:
             },
             "messages": [
                 {"role": "system", "content": EXTRACTION_PROMPT},
-                {"role": "user", "content": [
-                    {"type": "text", "text": "Extract only document data from the attached image."},
-                    {"type": "image_url", "image_url": {"url": image_url}},
-                ]},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Extract only document data from the attached image.",
+                        },
+                        {"type": "image_url", "image_url": {"url": image_url}},
+                    ],
+                },
             ],
         }
         try:
             if self.client is None:
-                async with httpx.AsyncClient(timeout=self.settings.ai_timeout_seconds, follow_redirects=False) as client:
-                    response = await client.post(url, headers={"Authorization": f"Bearer {self.settings.api_key}"}, json=request)
+                async with httpx.AsyncClient(
+                    timeout=self.settings.ai_timeout_seconds, follow_redirects=False
+                ) as client:
+                    response = await client.post(
+                        url,
+                        headers={"Authorization": f"Bearer {self.settings.api_key}"},
+                        json=request,
+                    )
             else:
-                response = await self.client.post(url, headers={"Authorization": f"Bearer {self.settings.api_key}"}, json=request)
+                response = await self.client.post(
+                    url, headers={"Authorization": f"Bearer {self.settings.api_key}"}, json=request
+                )
             response.raise_for_status()
             payload = response.json()
             content = payload["choices"][0]["message"]["content"]

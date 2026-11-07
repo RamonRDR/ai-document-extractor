@@ -31,7 +31,9 @@ def cases() -> list[Case]:
             currency="BRL" if index % 2 == 0 else "USD",
             subtotal=amount,
             total=amount,
-            items=[{"description": "Test item", "quantity": "1", "unit_price": amount, "total": amount}],
+            items=[
+                {"description": "Test item", "quantity": "1", "unit_price": amount, "total": amount}
+            ],
         )
         result.append(Case(index, ("png", "jpeg", "pdf")[index % 3], layouts[index % 5], expected))
     return result
@@ -61,7 +63,9 @@ def _pdf(lines: list[str]) -> bytes:
     content.extend(f"xref\n0 {len(offsets)}\n0000000000 65535 f \n".encode())
     for offset in offsets[1:]:
         content.extend(f"{offset:010d} 00000 n \n".encode())
-    content.extend(f"trailer\n<< /Size {len(offsets)} /Root 1 0 R >>\nstartxref\n{pointer}\n%%EOF\n".encode())
+    content.extend(
+        f"trailer\n<< /Size {len(offsets)} /Root 1 0 R >>\nstartxref\n{pointer}\n%%EOF\n".encode()
+    )
     return bytes(content)
 
 

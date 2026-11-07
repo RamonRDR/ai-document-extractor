@@ -23,7 +23,9 @@ def test_demo_and_review(client: TestClient, png: bytes) -> None:
     corrected["total"] = "12.50"
     corrected["subtotal"] = "12.50"
     corrected["items"] = []
-    review = client.post("/api/v1/review", json={"original": extracted, "corrected": corrected, "confirmed": True})
+    review = client.post(
+        "/api/v1/review", json={"original": extracted, "corrected": corrected, "confirmed": True}
+    )
     assert review.status_code == 200
     reviewed = review.json()
     assert reviewed["original"]["document"]["total"] == "140.00"
@@ -38,14 +40,26 @@ def test_demo_and_review(client: TestClient, png: bytes) -> None:
 
 def test_confirmation_required(client: TestClient, png: bytes) -> None:
     original = _upload(client, png)
-    payload = {"original": original, "corrected": original["document"], "confirmed": False, "issues": []}
+    payload = {
+        "original": original,
+        "corrected": original["document"],
+        "confirmed": False,
+        "issues": [],
+    }
     assert client.post("/api/v1/export/csv", json=payload).status_code == 409
 
 
 def test_bad_upload_and_explicit_live_opt_in(client: TestClient, png: bytes, monkeypatch) -> None:
-    assert client.post("/api/v1/extract", files={"file": ("bad.pdf", b"bad", "application/pdf")}).status_code == 415
+    assert (
+        client.post(
+            "/api/v1/extract", files={"file": ("bad.pdf", b"bad", "application/pdf")}
+        ).status_code
+        == 415
+    )
     monkeypatch.delenv("ALLOW_PAID_AI", raising=False)
-    response = client.post("/api/v1/extract", data={"mode": "openai"}, files={"file": ("sample.png", png, "image/png")})
+    response = client.post(
+        "/api/v1/extract", data={"mode": "openai"}, files={"file": ("sample.png", png, "image/png")}
+    )
     assert response.status_code == 503
 
 
@@ -63,7 +77,7 @@ def test_batch_partial_failures(client: TestClient, png: bytes) -> None:
 def test_csv_formula_injection(client: TestClient, png: bytes) -> None:
     original = _upload(client, png)
     corrected = dict(original["document"])
-    corrected["issuer_name"] = "=HYPERLINK(\"evil\")"
+    corrected["issuer_name"] = '=HYPERLINK("evil")'
     payload = {"original": original, "corrected": corrected, "confirmed": True, "issues": []}
     result = client.post("/api/v1/export/csv", json=payload)
     assert result.status_code == 200

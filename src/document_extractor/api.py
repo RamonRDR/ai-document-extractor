@@ -33,7 +33,9 @@ async def interface() -> str:
     return Path(__file__).with_name("ui.html").read_text(encoding="utf-8")
 
 
-async def _extract(upload: UploadFile, mode: Literal["demo", "openai"], settings: Settings) -> ExtractionResult:
+async def _extract(
+    upload: UploadFile, mode: Literal["demo", "openai"], settings: Settings
+) -> ExtractionResult:
     try:
         raw = await upload.read(settings.max_upload_bytes + 1)
         return await extract_document(raw, upload.content_type, mode, settings)
@@ -110,11 +112,30 @@ async def export_csv(reviewed: ReviewResult) -> Response:
     doc = reviewed.corrected
     output = io.StringIO(newline="")
     writer = csv.writer(output)
-    writer.writerow(["document_type", "issuer_name", "issuer_cnpj", "issue_date", "document_number", "currency", "total", "item_description", "item_quantity", "item_unit_price", "item_total"])
+    writer.writerow(
+        [
+            "document_type",
+            "issuer_name",
+            "issuer_cnpj",
+            "issue_date",
+            "document_number",
+            "currency",
+            "total",
+            "item_description",
+            "item_quantity",
+            "item_unit_price",
+            "item_total",
+        ]
+    )
     for item in doc.items or [None]:
         values = [
-            doc.document_type, doc.issuer_name, doc.issuer_cnpj, doc.issue_date,
-            doc.document_number, doc.currency, doc.total,
+            doc.document_type,
+            doc.issuer_name,
+            doc.issuer_cnpj,
+            doc.issue_date,
+            doc.document_number,
+            doc.currency,
+            doc.total,
             item.description if item else None,
             item.quantity if item else None,
             item.unit_price if item else None,
