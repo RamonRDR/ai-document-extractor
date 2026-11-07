@@ -83,7 +83,10 @@ async def evaluate(
         "cost_per_document_usd": None,
         "caveat": "fixture mode does not run a model or measure extraction accuracy"
         if mode != "live"
-        else "live mode uses provider; reserved budget is a user-supplied ceiling, not measured billing",
+        else (
+            "live mode uses provider; reserved budget is a user-supplied ceiling, "
+            "not measured billing"
+        ),
     }
     return output
 
