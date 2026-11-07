@@ -40,7 +40,13 @@ async def test_structured_response() -> None:
         assert payload["messages"][0]["role"] == "system"
         values = {field: None for field in response_json_schema()["properties"] if field != "items"}
         values.update({"document_type": "receipt", "total": "30.50", "items": []})
-        return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(values)}}], "usage": {"prompt_tokens": 120, "completion_tokens": 80}})
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": json.dumps(values)}}],
+                "usage": {"prompt_tokens": 120, "completion_tokens": 80},
+            },
+        )
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         provider = OpenAIProvider(settings(), client)
