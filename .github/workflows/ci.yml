@@ -1,0 +1,52 @@
+name: CI
+on:
+  push:
+    branches: [main, "feat/**", "fix/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]"
+      - name: Lint and format
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Typecheck
+        run: mypy --ignore-missing-imports src/document_extractor
+      - name: Run unit and integration tests
+        run: pytest -q
+      - name: Validate schemas
+        run: python -c "from document_extractor.providers import response_json_schema; s=response_json_schema(); assert s['additionalProperties'] is False and len(s['required']) == 12"
+      - name: Synthetic regression (NO model calls)
+        run: python -m evaluation.runner --mode fixture --report evaluation-report.json
+      - name: Build wheel and sdist
+        run: python -m build
+      - name: Upload deterministic evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-evaluation
+          path: evaluation-report.json
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image without deploying
+        run: docker build --tag ai-document-extractor:ci .
