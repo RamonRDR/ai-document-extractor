@@ -30,18 +30,16 @@ class UploadRequestLimitMiddleware:
 
         settings = Settings.from_env()
         number_of_files = 1 if path == "/api/v1/extract" else settings.max_batch_files
-        max_body = number_of_files * (
-            settings.max_upload_bytes + MULTIPART_OVERHEAD_PER_FILE
-        )
+        max_body = number_of_files * (settings.max_upload_bytes + MULTIPART_OVERHEAD_PER_FILE)
 
         headers = dict(scope.get("headers", []))
         if b"content-length" in headers:
             try:
                 length = int(headers[b"content-length"])
             except ValueError:
-                await JSONResponse(
-                    {"detail": "Invalid Content-Length"}, status_code=400
-                )(scope, receive, send)
+                await JSONResponse({"detail": "Invalid Content-Length"}, status_code=400)(
+                    scope, receive, send
+                )
                 return
             if length < 0 or length > max_body:
                 await JSONResponse(

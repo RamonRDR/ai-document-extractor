@@ -36,7 +36,6 @@ async def test_fixture_evaluation_has_no_fake_accuracy() -> None:
     assert report["cost_per_document_usd"] is None
 
 
-
 @pytest.mark.asyncio
 async def test_live_evaluation_counts_financial_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     from document_extractor.schemas import FinancialDocument

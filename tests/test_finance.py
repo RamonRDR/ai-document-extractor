@@ -93,7 +93,6 @@ def test_invalid_quantity_and_negative() -> None:
     assert "negative_amount" in codes
 
 
-
 @pytest.mark.parametrize(
     "value",
     [

@@ -39,12 +39,14 @@ def _validate_financial(document: FinancialDocument) -> list[Issue]:
     for field in ("subtotal", "discount", "tax", "surcharge", "total"):
         value = getattr(document, field)
         if value is not None and value < 0:
-            issues.append(Issue(
+            issues.append(
+                Issue(
                     code="negative_amount",
                     field=field,
                     message="Negative amount",
                     severity="error",
-                ))
+                )
+            )
 
     for index, item in enumerate(document.items):
         if item.quantity is not None and item.quantity <= 0:

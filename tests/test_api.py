@@ -84,7 +84,6 @@ def test_csv_formula_injection(client: TestClient, png: bytes) -> None:
     assert "'=HYPERLINK" in result.text
 
 
-
 def test_review_rejects_out_of_range_financial_amount(client: TestClient, png: bytes) -> None:
     original = _upload(client, png)
     corrected = dict(original["document"])
