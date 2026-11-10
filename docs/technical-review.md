@@ -34,3 +34,7 @@ The first explicitly authorized Codex Review of PR #1 reported six issues: uploa
 ## Automatic follow-up Codex findings (2026-11-10)
 
 Codex automatically reviewed commit `a0a53c6` and identified two additional P2 issues: alpha-channel image compositing and decimal-scale equivalence in evaluation scoring. Both received code and regression-test fixes; they are included in the 68-test suite pending the final CI evidence. The paid live provider remains untested by design.
+
+## Follow-up Codex finding: stale usage (2026-11-10)
+
+In the final Codex review of commit `d7441d4`, a P2 finding identified that a reused provider could carry forward earlier token usage when the latest response omitted or invalidated usage. The implementation resets `last_usage` for every request and rejects non-integer/negative token counts. Five provider-level regression cases and an offline live-evaluation metric test bring the suite to 74 cases, pending final GitHub Actions evidence. This test never contacts a paid model.

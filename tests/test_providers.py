@@ -85,3 +85,44 @@ async def test_provider_timeout() -> None:
     async with httpx.AsyncClient(transport=httpx.MockTransport(raise_timeout)) as client:
         with pytest.raises(ProviderError, match="timed out"):
             await OpenAIProvider(settings(), client).extract(PreparedDocument(b"x", "image/png"))
+
+
+@pytest.mark.parametrize(
+    "second_usage",
+    [
+        {},
+        {"usage": None},
+        {"usage": {"prompt_tokens": -1, "completion_tokens": 7}},
+        {"usage": {"prompt_tokens": "120", "completion_tokens": 7}},
+        {"usage": {"prompt_tokens": True, "completion_tokens": 7}},
+    ],
+)
+@pytest.mark.asyncio
+async def test_usage_never_carries_over_between_documents(
+    second_usage: dict[str, object],
+) -> None:
+    """An absent or invalid second usage report cannot reuse first-document tokens."""
+    requests = 0
+    values = {field: None for field in response_json_schema()["properties"] if field != "items"}
+    values.update({"document_type": "receipt", "total": "30.50", "items": []})
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal requests
+        requests += 1
+        response: dict[str, object] = {
+            "choices": [{"message": {"content": json.dumps(values)}}]
+        }
+        if requests == 1:
+            response["usage"] = {"prompt_tokens": 120, "completion_tokens": 80}
+        else:
+            response.update(second_usage)
+        return httpx.Response(200, json=response)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        provider = OpenAIProvider(settings(), client)
+        document = PreparedDocument(b"fictional", "image/png")
+        await provider.extract(document)
+        assert provider.last_usage == {"prompt_tokens": 120, "completion_tokens": 80}
+        await provider.extract(document)
+        assert provider.last_usage is None
+    assert requests == 2

@@ -100,3 +100,47 @@ def test_accuracy_uses_numeric_decimal_equality(
     matched, total_fields = _accuracy(actual, base)
     assert matched == expected_matches
     assert total_fields == 7
+
+
+@pytest.mark.asyncio
+async def test_live_evaluation_does_not_estimate_cost_from_stale_usage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Two offline mocked provider responses: usage present, then unavailable."""
+    import json
+
+    import httpx
+
+    from document_extractor.providers import OpenAIProvider, response_json_schema
+    from evaluation import runner
+
+    monkeypatch.setenv("OPENAI_API_KEY", "fictional-test-key")
+    monkeypatch.setenv("ALLOW_PAID_AI", "1")  # All requests use MockTransport.
+    monkeypatch.setenv("AI_INPUT_USD_PER_MILLION", "1")
+    monkeypatch.setenv("AI_OUTPUT_USD_PER_MILLION", "1")
+
+    fields = {field: None for field in response_json_schema()["properties"] if field != "items"}
+    fields.update({"document_type": "receipt", "total": "10", "items": []})
+    count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal count
+        count += 1
+        response: dict[str, object] = {
+            "choices": [{"message": {"content": json.dumps(fields)}}]
+        }
+        if count == 1:
+            response["usage"] = {"prompt_tokens": 120, "completion_tokens": 80}
+        return httpx.Response(200, json=response)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        monkeypatch.setattr(
+            runner,
+            "OpenAIProvider",
+            lambda settings: OpenAIProvider(settings, client),
+        )
+        report = await runner.evaluate("live", 2, 1.0, 0.5)
+
+    assert count == 2
+    assert report["synthetic_cases_checked"] == 2
+    assert report["cost_per_document_usd"] is None

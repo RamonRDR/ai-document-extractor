@@ -2,7 +2,7 @@
 
 **Scope:** `RamonRDR/ai-document-extractor`, PR #1 development branch. Audited from actual `pyproject.toml`, `src/`, `tests/`, `Dockerfile`, `LICENSE`, both Actions workflows, README files and the green [run 42407900020](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42407900020).
 
-**Updated regression result:** 61 pytest passed, 0 failed, 0 skipped, 1 non-fatal warning. Synthetic evaluation validated 30 fictional fixtures. No real AI extraction accuracy, coverage percentage or provider billing measured.
+**Last fully verified baseline:** 68 pytest passed (run 42823437181), 0 failed, 0 skipped, 1 non-fatal warning. New 74-test suite awaits its CI verification. Synthetic evaluation validated 30 fictional fixtures. No real AI extraction accuracy, coverage percentage or provider billing measured.
 
 | Category | Technology / check | Badge | Evidence and qualification |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@
 | Stack / Infrastructure | Docker build | Yes | Dockerfile; .github/workflows/ci.yml docker job success |
 | AI / Integration | OpenAI API (opt-in adapter, live unverified) | Yes | providers.py OpenAIProvider; service.py ALLOW_PAID_AI gate; no paid E2E |
 | AI / Integration | Structured outputs JSON Schema | Yes | providers.py response_json_schema() and JSON schema request; mocked integration test |
-| Quality / Documentation | pytest 46 passing | Yes | GitHub Actions run 42741844565 verify logs: 61 passed, 1 warning, 0 failed/skipped; all CI checks green |
+| Quality / Documentation | pytest 74 passing | Yes | 68 passed in run 42823437181; new 74-test suite added for missing/malformed provider token usage and awaits CI validation |
 | Quality / Documentation | pytest-asyncio | Yes | pyproject.toml pytest-asyncio>=1.2,<2; async tests |
 | Quality / Documentation | Ruff lint & format | Yes | ci.yml ruff check + format --check; green run |
 | Quality / Documentation | mypy type checked | Yes | ci.yml mypy --ignore-missing-imports; strict tool.mypy; green run |
@@ -68,3 +68,7 @@ Two P2 findings from the automatic follow-up review of commit `a0a53c6` were add
 - **Transparent PNG legibility:** the renderer now composites images with an alpha channel onto a white opaque canvas before RGB encoding. The three regression cases cover RGBA, grayscale+alpha (LA) and indexed PNG with palette transparency, while retaining EXIF stripping.
 - **Monetary field accuracy:** `evaluation.runner._accuracy` compares non-null monetary totals by numeric `Decimal` value, not serialized scale; regression cases cover equal scales, mismatched totals and missing values.
 - This adds **seven** parameterized cases to the previously green 61-test suite, making **68** tests. All three README badges are kept identical and the JUnit-backed CI verifier is authoritative. No paid model evaluation is performed.
+
+## Final Codex follow-up: token usage freshness (2026-11-10)
+
+Codex found that reusing `OpenAIProvider` across documents could preserve `last_usage` from a previous response when the next response omitted or malformed its usage. This caused an unreliable `cost_per_document_usd` metric. The provider now clears usage at the **start** of each extraction and only accepts non-negative, exact-integer token counts (booleans excluded). Five parametrized HTTP MockTransport cases and one mocked two-document evaluation regression were added: **74 tests total**, with no real paid requests. Final CI verification pending.

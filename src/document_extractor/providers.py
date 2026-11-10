@@ -107,6 +107,9 @@ class OpenAIProvider:
         self.last_usage: dict[str, int] | None = None
 
     async def extract(self, document: PreparedDocument) -> FinancialDocument:
+        # The same adapter handles multiple documents in live evaluations.
+        # Missing/invalid usage must never inherit an earlier document's tokens.
+        self.last_usage = None
         if not self.settings.api_key:
             raise ProviderError("OPENAI_API_KEY not configured", 503)
         url = "https://api.openai.com/v1/chat/completions"
@@ -167,8 +170,8 @@ class OpenAIProvider:
                 input_tokens = usage.get("prompt_tokens")
                 output_tokens = usage.get("completion_tokens")
                 if (
-                    isinstance(input_tokens, int)
-                    and isinstance(output_tokens, int)
+                    type(input_tokens) is int
+                    and type(output_tokens) is int
                     and input_tokens >= 0
                     and output_tokens >= 0
                 ):
