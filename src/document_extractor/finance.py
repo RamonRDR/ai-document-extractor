@@ -48,7 +48,8 @@ def parse_money(value: object) -> Decimal | None:
         raise ValueError("Non-finite decimal value")
     if result.adjusted() >= MAX_INTEGER_DIGITS:
         raise ValueError("Decimal magnitude exceeds supported range")
-    if result.as_tuple().exponent < -MAX_DECIMAL_PLACES:
+    exponent = result.as_tuple().exponent
+    if isinstance(exponent, int) and exponent < -MAX_DECIMAL_PLACES:
         raise ValueError("Decimal precision exceeds six fractional places")
     return result
 
