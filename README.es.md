@@ -1,63 +1,208 @@
-# AI Document Extractor
+<div align="center">
 
-[English](README.md) · [Português](README.pt-BR.md) · **Español**
+# AI Document Extractor 📄
 
-API Python sin almacenamiento para extraer datos financieros estructurados de documentos de una página, comprobar importes y permitir revisión humana. Muestra FastAPI, IA multimodal, Pydantic, Decimal, automatización y CI.
+**Extrae datos estructurados de documentos financieros, verifica los importes y exporta con revisión humana.**
 
-> **Importante:** el modo de demostración devuelve siempre un registro fijo y ficticio, con independencia del archivo. **No ejecuta OCR ni extracción real mediante IA.** El modo real necesita habilitación explícita y puede generar costes. No subas información privada a una demo pública.
+[🇺🇸 English](README.md) · [🇧🇷 Português](README.pt-BR.md) · [🇪🇸 Español](README.es.md)
 
-## Funciones
+<!-- BADGES:START -->
+[![CI](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml/badge.svg?branch=feat%2Fdocument-extractor-full-implementation)](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation)
+![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB)
+[![MIT License](https://img.shields.io/badge/License-MIT-2ea44f)](LICENSE)
 
-Carga de PDF, PNG y JPEG con detección de firma, coincidencia MIME, límite de tamaño, píxeles y página única; interfaz de revisión en `/` y OpenAPI en `/docs`; proveedores intercambiables `demo` y `openai`; JSON estructurado con valores nulos, procedencia y alertas. Exportación CSV/JSON tras confirmación y lotes de hasta cinco documentos con errores aislados.
+![FastAPI >=0.128](https://img.shields.io/badge/FastAPI-0.128%2B-009688)
+![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063)
+![Uvicorn ASGI](https://img.shields.io/badge/Uvicorn-ASGI-4051B5)
+![httpx >=0.28](https://img.shields.io/badge/httpx-0.28%2B-4479A1)
+![Pillow >=11.3](https://img.shields.io/badge/Pillow-11.3%2B-5C5C5C)
+![pypdfium2 >=5.14](https://img.shields.io/badge/pypdfium2-5.14%2B-6D3A88)
+![python-multipart >=0.0.20](https://img.shields.io/badge/python--multipart-0.0.20%2B-6A5ACD)
+![Docker Build](https://img.shields.io/badge/Docker-build%20validated-2496ED)
 
-## Tecnologías y arquitectura
+![OpenAI API optional](https://img.shields.io/badge/OpenAI%20API-opt--in%20adapter-5A6872)
+![Structured outputs](https://img.shields.io/badge/Structured%20Outputs-JSON%20Schema-7E57C2)
 
-Python 3.14, FastAPI, Pydantic v2, httpx, Pillow, pypdfium2, pytest, Ruff, mypy, Docker y GitHub Actions. Separación entre validación de entradas, renderizado PDF, proveedor de IA, schema, comprobaciones financieras, revisión y exportación. Ver [diagrama](docs/architecture.md), [schemas](docs/schema.md) y [decisión técnica](docs/adr/0001-provider-and-renderer.md).
+![pytest 46 passing](https://img.shields.io/badge/pytest-46%20passing-0A9EDC)
+![pytest-asyncio](https://img.shields.io/badge/pytest--asyncio-enabled-0A9EDC)
+![Ruff lint and format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
+![mypy type checked](https://img.shields.io/badge/mypy-type%20checked-2A6DB4)
+![OpenAPI documented](https://img.shields.io/badge/OpenAPI-%2Fdocs%20validated-6BA539)
+![30 synthetic fixtures](https://img.shields.io/badge/Synthetic%20Evaluation-30%20fixtures-607D8B)
+![Package build](https://img.shields.io/badge/Package%20Build-wheel%20%2B%20sdist-455A64)
+[![Feature branch formatting](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/format-branch.yml/badge.svg?branch=feat%2Fdocument-extractor-full-implementation)](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/format-branch.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation)
+
+<!-- BADGES:END -->
+
+</div>
+
+> **Estado del proyecto:** implementación en el [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1), pendiente de autorización explícita para Codex Review y merge. El [CI de la rama de desarrollo](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) está en verde. Sin despliegue ni paquete publicado.
+
+## Descripción general
+
+API sin almacenamiento persistente para documentos financieros de una página, con revisión humana. Recibe PDF, PNG o JPEG, estructura campos financieros, verifica coherencia aritmética y exige confirmación antes de exportar CSV/JSON. Demuestra backend Python, automatización financiera, contratos REST tipados, adaptadores multimodales y CI alojado para un portafolio internacional.
+
+**Dos modos distintos:** `demo` devuelve **siempre el mismo registro ficticio** para cada archivo válido; **no** realiza OCR ni extracción por IA. `openai` es un adaptador multimodal **opcional** implementado; la extracción real de pago **no se ha ejecutado ni evaluado**.
+
+## Funcionalidades implementadas
+
+- PDF, PNG y JPEG de una sola página; validación de firma/MIME, tamaño de carga, renderizado PDF, integridad de imagen y límites de píxeles.
+- Interfaz sustituible de proveedor, demostración determinista ficticia y adaptador multimodal opcional de OpenAI con salida JSON Schema estructurada.
+- Contratos Pydantic v2 con valores nulos, procedencia (`extracted`, `inferred`, `missing` o `demo`), tiempo y advertencias.
+- CNPJ brasileño, fechas, importes `Decimal`, líneas, subtotales, descuentos, impuestos y recargos.
+- Interfaz web para corrección y confirmación; resultado original separado del corregido.
+- Exportación CSV y JSON solo después de confirmar; protección del CSV contra fórmulas.
+- Lotes de hasta cinco archivos de forma predeterminada, errores individuales y contadores.
+- 30 documentos sintéticos, pruebas simuladas del proveedor, comprobación de paquetes y automatización GitHub Actions.
+
+## Tecnologías
+
+| Capa | Implementación real |
+| --- | --- |
+| Ejecución | **Python 3.14**, paquete versión `0.1.0` |
+| API y datos | FastAPI **0.128+** (mínimo declarado), Pydantic **v2** (2.11+), Uvicorn ASGI, python-multipart **0.0.20+** |
+| Documentos y HTTP | pypdfium2 **5.14+** para PDF, Pillow **11.3+** para imágenes, httpx **0.28+** para peticiones al proveedor |
+| Límite de IA | Adaptador OpenAI API con imágenes multimodales y JSON Schema estricto, desactivado inicialmente; extracción externa real sin validar |
+| Calidad | pytest, pytest-asyncio, Ruff lint/formato, mypy estricto, 30 casos deterministas de evaluación sintética |
+| Automatización | GitHub Actions, wheel/sdist con Hatchling, build Docker, formato de ramas de funcionalidades |
+
+Las versiones con `+` son **mínimos declarados**, no versiones exactas fijadas. El manifiesto admite versiones compatibles posteriores. No se utiliza base de datos, Redis, Alembic, Docker Compose, RAG, embeddings ni MCP.
+
+## Arquitectura
+
+Flujo: **carga → validación → preparación PDF/imagen → proveedor elegido → contrato Pydantic → comprobaciones financieras → corrección humana → exportación confirmada**. Sin base de datos ni almacenamiento documental. Consulta el [diagrama](docs/architecture.md), los [schemas](docs/schema.md) y la [ADR del proveedor/renderizador](docs/adr/0001-provider-and-renderer.md).
+
+## Requisitos
+
+Python **3.14** y pip. Docker Engine es opcional. No hace falta clave de IA para demostración, pruebas o CI. No utilices documentos privados en demos públicas.
 
 ## Instalación
 
-```bash
+~~~bash
 python3.14 -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
+~~~
+
+En Windows, activa con `.venv\Scripts\activate`. Build opcional del contenedor: `docker build -t ai-document-extractor .`.
+
+## Configuración
+
+Consulta [`.env.example`](.env.example). Es una referencia: la aplicación lee **variables de entorno**, no carga este archivo automáticamente.
+
+| Variable | Finalidad |
+| --- | --- |
+| `ALLOW_PAID_AI` | Predeterminado `0`; debe ser `1` para modo real |
+| `OPENAI_API_KEY` | Secreto para extracción real autorizada; nunca publicarlo |
+| `AI_MODEL` | Predeterminado `gpt-4o-mini` (configuración, no validación real) |
+| `AI_TIMEOUT_SECONDS` | Tiempo máximo del proveedor (20 segundos) |
+| `MAX_UPLOAD_BYTES` | Límite por archivo (5.242.880 bytes) |
+| `MAX_BATCH_FILES` | Límite de archivos por petición (5) |
+| `EVAL_LIVE` | Activación adicional para evaluación real manual, `0` |
+| `AI_INPUT_USD_PER_MILLION` / `AI_OUTPUT_USD_PER_MILLION` | Tarifas proporcionadas para una **estimación**, no límite de facturación |
+
+El CI no usa secretos. La extracción real puede generar costes y envía la imagen del documento al proveedor.
+
+## Ejecución e interfaz
+
+~~~bash
 uvicorn document_extractor.api:app --reload
-```
+# Alternativa Docker:
+docker run --rm -p 8000:8000 ai-document-extractor
+~~~
 
-En Windows: `.venv\Scripts\activate`. Abre `http://127.0.0.1:8000/` o `/docs`. Docker: `docker build -t ai-document-extractor .` y `docker run --rm -p 8000:8000 ai-document-extractor`.
+La interfaz local está en `http://127.0.0.1:8000/`. Endpoints REST:
 
-## Configuración y ejemplo de carga
+| Endpoint | Función |
+| --- | --- |
+| `GET /health` | Estado básico |
+| `GET /docs` | Swagger UI y documentación automática de FastAPI |
+| `GET /openapi.json` | Schema OpenAPI |
+| `POST /api/v1/extract` | Un archivo, `mode=demo` o `mode=openai` |
+| `POST /api/v1/batch` | Varios archivos con resultados independientes |
+| `POST /api/v1/review` | Registro original, campos corregidos y confirmación |
+| `POST /api/v1/export/csv` / `POST /api/v1/export/json` | Descarga de datos revisados y confirmados |
 
-Consulta [`.env.example`](.env.example). La demo funciona sin claves. Una llamada real autorizada requiere `ALLOW_PAID_AI=1` y `OPENAI_API_KEY`; manda `mode=openai`. No publiques credenciales ni habilites modelos de pago en CI.
+## Ejemplo de uso
 
-```bash
+~~~bash
 curl -X POST http://127.0.0.1:8000/api/v1/extract \
-  -F "file=@recibo-ficticio.png;type=image/png" -F "mode=demo"
-```
+  -F "file=@recibo-ficticio.png;type=image/png" \
+  -F "mode=demo"
+~~~
 
-Fragmento del JSON **ficticio**, no extraído del archivo:
+Respuesta abreviada **ficticia**, no extraída del archivo:
 
-```json
-{"mode":"demo","document":{"issuer_name":"Example Studio (FICTIONAL)","total":"140.00","issuer_cnpj":null},"needs_review":true}
-```
+~~~json
+{
+  "mode": "demo",
+  "document": {
+    "document_type": "synthetic_receipt",
+    "issuer_name": "Example Studio (FICTIONAL)",
+    "issuer_cnpj": null,
+    "issue_date": "2026-01-15",
+    "total": "140.00",
+    "items": [{"description": "Synthetic service", "quantity": "2", "unit_price": "75.00", "total": "150.00"}]
+  },
+  "needs_review": true,
+  "notice": "DEMO ONLY: fixed fictional data. No AI extraction or OCR performed."
+}
+~~~
 
-El resultado completo también contiene tipo, fecha, número, moneda, subtotal, descuento, impuestos, recargos, partidas, procedencia, problemas y tiempo. Los importes se representan mediante `Decimal`.
+La respuesta completa incluye moneda, número, subtotal/ajustes, procedencia, advertencias y tiempo. [Detalles del schema](docs/schema.md).
 
-## Comprobaciones financieras y revisión humana
+## Validaciones financieras y revisión humana
 
-CNPJ con dígitos de control, fechas, cantidades positivas, sumas por partida, subtotales y ajustes. Campos no detectados siguen nulos. Envía `original`, `corrected` y `confirmed: true` a `POST /api/v1/review` y después el resultado a `/api/v1/export/csv` o `/api/v1/export/json`. Sin confirmación se devuelve HTTP 409. Se preservan por separado el resultado original y el corregido.
+Formato y dígitos de CNPJ, fechas, importes, cantidades, productos de línea y conciliación de subtotal/ajustes producen advertencias, sin reescribir silenciosamente valores. Los campos ausentes quedan nulos. Envía `{"original": <resultado-extracción>, "corrected": <documento-editado>, "confirmed": true}` a `POST /api/v1/review` y luego su respuesta a `/api/v1/export/csv` o `/api/v1/export/json`. Sin confirmación devuelve **HTTP 409**. La interfaz web ofrece este flujo.
 
-## Pruebas, evaluación y GitHub Actions
+## Procesamiento por lotes
 
-```bash
+Envía varios campos multipart `files` a `POST /api/v1/batch`; cada elemento devuelve índice, éxito, resultado o error. Los contadores separan éxitos y fallos. Límite inicial de cinco archivos y tamaño individual limitado.
+
+## Pruebas automatizadas y evaluación
+
+~~~bash
 ruff check .
 ruff format --check .
 mypy --ignore-missing-imports src/document_extractor
 pytest -q
-python -m evaluation.runner --mode fixture
-```
+python -m evaluation.runner --mode fixture --report evaluation-report.json
+python -m build
+~~~
 
-30 documentos completamente sintéticos permiten verificar formatos, layouts y reglas. Esta evaluación determinista **no mide precisión real de IA**, por lo que dicha métrica es nula. La evaluación con proveedor real es optativa, manual y exige configuración de presupuesto; no limita la factura del proveedor. GitHub Actions comprueba Ruff, formato, tipos, pruebas, regresión sintética, paquete y Docker en infraestructura alojada. Sin ejecución en la máquina personal ni llamadas de pago.
+Las **46 pruebas aprobadas** provienen de la [ejecución 42407900020 de GitHub Actions](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42407900020) (46 aprobadas, 0 fallos, 0 omitidas y una advertencia). Las 30 fixtures ficticias prueban documentos, schemas y reglas, pero **no** miden precisión real de IA ni costes reales. La evaluación de pago es manual y requiere `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, clave y presupuesto positivo. Solo con un **presupuesto ya autorizado**, el comando es `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Es una reserva estimada, **no** un bloqueo de facturación real.
 
-## Seguridad, límites y licencia
+## GitHub Actions y mantenimiento de badges
 
-Sin archivos persistentes y sin credenciales en el código. Los textos del documento se tratan como datos no confiables, los archivos se limitan y el CSV evita inyección de fórmulas. Aún no hay autenticación, escaneo antimalware, aislamiento del parser, límites globales, base de datos, varias páginas ni referencias visuales por campo. No lo uses en producción sin controles adicionales. Consulta [privacidad](docs/privacy.md). Código de aplicación con licencia [MIT](LICENSE); dependencias con licencias propias.
+El [workflow de CI](.github/workflows/ci.yml) ejecuta Ruff, formato, mypy, pytest, revisión de schema, fixtures, build wheel/sdist y Docker por separado. El [formateador de ramas](.github/workflows/format-branch.yml) solo puede modificar ramas `feat/**`, nunca `main`. CI usa runners alojados y **nunca invoca modelos de pago**.
+
+El **badge pytest es estático y verificable**: [`scripts/check_readme_badges.py`](scripts/check_readme_badges.py) compara la cifra con el JUnit XML real y revisa los tres README. Cambiar pruebas obliga a actualizar los tres y superar CI. Los badges de CI/formato apuntan a la rama de desarrollo hasta que PR #1 se integre; después deben apuntar a `main`. [Inventario de badges](docs/badges.md).
+
+## Seguridad y privacidad
+
+El documento es entrada no confiable; su texto jamás se ejecuta como comando. Comprobaciones de formato/MIME, páginas, bytes/píxeles, timeout y prevención de fórmulas CSV reducen el riesgo. No se persisten documentos. No hay secretos, documentos financieros reales, llamadas pagadas ni publicación incluidos. Revisa el [modelo de amenazas y privacidad](docs/privacy.md).
+
+## Limitaciones conocidas y futuras mejoras
+
+Solo una página; sin autenticación, límite global de peticiones, antivirus, aislamiento del parser PDF, persistencia, multi-tenancy, colas ni recuadros de evidencia por campo. No hay benchmark real del modelo opcional; toda extracción requiere verificación humana. Para producción harían falta aislamiento, acceso controlado y evaluación real. Este proyecto **no está desplegado** como plataforma contable.
+
+## Estructura del repositorio
+
+| Ruta | Responsabilidad |
+| --- | --- |
+| `src/document_extractor/api.py` / `ui.html` | HTTP e interfaz de revisión |
+| `src/document_extractor/documents.py` | Validación y renderizado PDF/imagen |
+| `src/document_extractor/providers.py` / `prompts.py` | Proveedores, JSON Schema y prompt |
+| `src/document_extractor/schemas.py` / `validation.py` / `finance.py` | Campos y reglas financieras |
+| `evaluation/` / `tests/` | Evaluación sintética y pruebas |
+| `scripts/check_readme_badges.py` | Consistencia de README frente a JUnit |
+| `.github/workflows/` | CI y formateador de ramas |
+| `docs/` | Arquitectura, schemas, ADR, privacidad y auditorías |
+
+## Contribuciones
+
+Abre issue o PR describiendo la propuesta; mantén pruebas y tres idiomas sincronizados. Ejecuta Ruff, mypy y pytest. No subas documentos personales, claves ni secretos. El [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1) espera revisión final Codex autorizada y posterior merge autorizado.
+
+## Licencia
+
+Código de aplicación bajo [licencia MIT](LICENSE), copyright 2026 Ramon Rodriguez. Las dependencias tienen sus propias licencias, incluido PDFium/pypdfium2. No se garantiza soporte comercial ni seguridad en producción.
