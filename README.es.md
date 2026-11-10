@@ -170,7 +170,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ~~~
 
-Las **61 pruebas aprobadas** se ejecutaron en [GitHub Actions 42741615175](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741615175) (61 aprobadas, 0 fallos, 0 omitidas, una advertencia; el flujo se detuvo después por el badge antiguo, ya corregido). Las 30 fixtures ficticias prueban documentos, schemas y reglas, pero **no** miden precisión real de IA ni costes reales. La evaluación de pago es manual y requiere `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, clave y presupuesto positivo. Solo con un **presupuesto ya autorizado**, el comando es `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Es una reserva estimada, **no** un bloqueo de facturación real.
+Las **61 pruebas aprobadas** fueron verificadas en [GitHub Actions 42741844565](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565), con todos los controles en verde (61 aprobadas, 0 fallos, 0 omitidas y una advertencia no crítica). Las 30 fixtures ficticias prueban documentos, schemas y reglas, pero **no** miden precisión real de IA ni costes reales. La evaluación de pago es manual y requiere `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, clave y presupuesto positivo. Solo con un **presupuesto ya autorizado**, el comando es `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Es una reserva estimada, **no** un bloqueo de facturación real.
 
 ## GitHub Actions y mantenimiento de badges
 

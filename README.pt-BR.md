@@ -170,7 +170,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ~~~
 
-Os **61 testes aprovados** foram executados no [GitHub Actions 42741615175](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741615175) (61 aprovados, 0 falhas, 0 ignorados, um aviso; a execução parou depois apenas pelo badge antigo, agora corrigido). As 30 fixtures fictícias cobrem arquivos, schemas e regras financeiras; **não** medem acurácia de extração de IA nem custo real. A avaliação paga é manual, exigindo `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, chave e orçamento explícito não nulo. Somente com **orçamento já autorizado**, o comando segue o formato `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Os parâmetros são reserva estimada, **não** limite de cobrança do provedor.
+Os **61 testes aprovados** foram verificados no [GitHub Actions 42741844565](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565), com todos os checks verdes (61 aprovados, 0 falhas, 0 ignorados, um aviso não impeditivo). As 30 fixtures fictícias cobrem arquivos, schemas e regras financeiras; **não** medem acurácia de extração de IA nem custo real. A avaliação paga é manual, exigindo `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, chave e orçamento explícito não nulo. Somente com **orçamento já autorizado**, o comando segue o formato `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Os parâmetros são reserva estimada, **não** limite de cobrança do provedor.
 
 ## GitHub Actions e manutenção dos badges
 
