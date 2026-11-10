@@ -53,6 +53,6 @@
 - [x] No datastore, migration, UI framework or fake performance metric added.
 - [x] All three README variants share the identical badge block and the same section structure.
 - [x] README badge/link check added to CI without changing business logic.
-- [ ] Final CI on the documentation commit has completed successfully.
+- [x] CI verified for README/badge validation: [run 42738578529](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42738578529), 46 pytest passes, three locales, 21 badges and green Docker build.
 
 **Review policy:** no Codex Review requested without explicit approval; no merge performed.
