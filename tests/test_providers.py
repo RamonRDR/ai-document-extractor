@@ -109,9 +109,7 @@ async def test_usage_never_carries_over_between_documents(
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal requests
         requests += 1
-        response: dict[str, object] = {
-            "choices": [{"message": {"content": json.dumps(values)}}]
-        }
+        response: dict[str, object] = {"choices": [{"message": {"content": json.dumps(values)}}]}
         if requests == 1:
             response["usage"] = {"prompt_tokens": 120, "completion_tokens": 80}
         else:

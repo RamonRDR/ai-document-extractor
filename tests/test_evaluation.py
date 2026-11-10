@@ -126,9 +126,7 @@ async def test_live_evaluation_does_not_estimate_cost_from_stale_usage(
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal count
         count += 1
-        response: dict[str, object] = {
-            "choices": [{"message": {"content": json.dumps(fields)}}]
-        }
+        response: dict[str, object] = {"choices": [{"message": {"content": json.dumps(fields)}}]}
         if count == 1:
             response["usage"] = {"prompt_tokens": 120, "completion_tokens": 80}
         return httpx.Response(200, json=response)
