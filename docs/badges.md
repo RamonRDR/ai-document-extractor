@@ -2,7 +2,7 @@
 
 **Scope:** `RamonRDR/ai-document-extractor`, PR #1 development branch. Audited from actual `pyproject.toml`, `src/`, `tests/`, `Dockerfile`, `LICENSE`, both Actions workflows, README files and the green [run 42407900020](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42407900020).
 
-**Previous verified result:** 74 pytest passed, 0 failed, 0 skipped and 1 non-fatal warning in [green CI run 42825215168](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42825215168). **Current 77-test regression suite** awaits the next CI run. Synthetic evaluation validated 30 fictional fixtures. No real AI extraction accuracy, coverage percentage or provider billing measured.
+**Current verified result:** 77 pytest passed, 0 failed, 0 skipped and 1 non-fatal warning in [green CI run 42827894928](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42827894928). Synthetic evaluation validated 30 fictional fixtures. No real AI extraction accuracy, coverage percentage or provider billing measured.
 
 | Category | Technology / check | Badge | Evidence and qualification |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@
 | Stack / Infrastructure | Docker build | Yes | Dockerfile; .github/workflows/ci.yml docker job success |
 | AI / Integration | OpenAI API (opt-in adapter, live unverified) | Yes | providers.py OpenAIProvider; service.py ALLOW_PAID_AI gate; no paid E2E |
 | AI / Integration | Structured outputs JSON Schema | Yes | providers.py response_json_schema() and JSON schema request; mocked integration test |
-| Quality / Documentation | pytest 77 passing | Yes | Three tests added for corrupt PNG checksum and independent batch errors; JUnit-backed CI validates all three README badges |
+| Quality / Documentation | pytest 77 passing | Yes | [Run 42827894928](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42827894928): 77 passed, 0 failed/skipped; JUnit-backed check green across three README badges |
 | Quality / Documentation | pytest-asyncio | Yes | pyproject.toml pytest-asyncio>=1.2,<2; async tests |
 | Quality / Documentation | Ruff lint & format | Yes | ci.yml ruff check + format --check; green run |
 | Quality / Documentation | mypy type checked | Yes | ci.yml mypy --ignore-missing-imports; strict tool.mypy; green run |
@@ -75,4 +75,4 @@ Codex found that reusing `OpenAIProvider` across documents could preserve `last_
 
 ## Fourth Codex review remediation: invalid PNG checksum (2026-11-10)
 
-An additional P2 from Codex identified that Pillow may raise `SyntaxError` during `Image.verify()` for a PNG with a damaged IDAT CRC. The exception is now normalized to a controlled `DocumentError` (422). Three regression cases cover the decoder, single-file HTTP 422, and per-file batch failure with a separate valid file succeeding. This increases the test suite to **77 cases** and synchronizes all three language badges. No real documents or paid provider calls are needed. Latest CI status should be checked on the PR branch.
+An additional P2 from Codex identified that Pillow may raise `SyntaxError` during `Image.verify()` for a PNG with a damaged IDAT CRC. The exception is now normalized to a controlled `DocumentError` (422). Three regression cases cover the decoder, single-file HTTP 422, and per-file batch failure with a separate valid file succeeding. This increases the test suite to **77 cases** and synchronizes all three language badges. No real documents or paid provider calls are needed. Verified in [green CI run 42827894928](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42827894928), including Ruff, mypy, pytest, synthetic evaluation, packaging and Docker.
