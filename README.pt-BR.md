@@ -23,7 +23,7 @@
 ![OpenAI API optional](https://img.shields.io/badge/OpenAI%20API-opt--in%20adapter-5A6872)
 ![Structured outputs](https://img.shields.io/badge/Structured%20Outputs-JSON%20Schema-7E57C2)
 
-![pytest 74 passing](https://img.shields.io/badge/pytest-74%20passing-0A9EDC)
+![pytest 77 passing](https://img.shields.io/badge/pytest-77%20passing-0A9EDC)
 ![pytest-asyncio](https://img.shields.io/badge/pytest--asyncio-enabled-0A9EDC)
 ![Ruff lint and format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
 ![mypy type checked](https://img.shields.io/badge/mypy-type%20checked-2A6DB4)
@@ -170,7 +170,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ~~~
 
-A suíte agora reúne **74 casos de teste**, incluindo verificações simuladas para evitar reutilizar tokens de documentos anteriores na estimativa de custos. O [workflow de CI](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) executa os testes e valida automaticamente a contagem exibida no badge com o relatório JUnit. A [execução anterior com 61 testes](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565) precede as correções adicionais. As 30 fixtures fictícias cobrem arquivos, schemas e regras financeiras; **não** medem acurácia de extração de IA nem custo real. A avaliação paga é manual, exigindo `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, chave e orçamento explícito não nulo. Somente com **orçamento já autorizado**, o comando segue o formato `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Os parâmetros são reserva estimada, **não** limite de cobrança do provedor.
+A suíte agora reúne **77 casos de teste**, incluindo proteção na estimativa de custos e tratamento de PNGs corrompidos sem interromper o lote. O [workflow de CI](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) executa os testes e valida automaticamente a contagem exibida no badge com o relatório JUnit. A [execução anterior com 61 testes](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565) precede as correções adicionais. As 30 fixtures fictícias cobrem arquivos, schemas e regras financeiras; **não** medem acurácia de extração de IA nem custo real. A avaliação paga é manual, exigindo `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, chave e orçamento explícito não nulo. Somente com **orçamento já autorizado**, o comando segue o formato `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Os parâmetros são reserva estimada, **não** limite de cobrança do provedor.
 
 ## GitHub Actions e manutenção dos badges
 

@@ -38,3 +38,7 @@ Codex automatically reviewed commit `a0a53c6` and identified two additional P2 i
 ## Follow-up Codex finding: stale usage (2026-11-10)
 
 In the final Codex review of commit `d7441d4`, a P2 finding identified that a reused provider could carry forward earlier token usage when the latest response omitted or invalidated usage. The implementation resets `last_usage` for every request and rejects non-integer/negative token counts. Five provider-level regression cases and an offline live-evaluation metric test bring the suite to **74 passing cases**, verified in [green GitHub Actions run 42825215168](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42825215168). A related existing error-path test now also checks that stale usage is reset. This test never contacts a paid model.
+
+## Fourth Codex finding: PNG verification checksum (2026-11-10)
+
+The review of commit `487327b` identified a P2 where malformed PNG IDAT CRC validation raises `SyntaxError` in Pillow and bypasses the API's controlled error mapping. Added `SyntaxError` to the catch block for verified/decoded images. Added three regression tests for the corrupt PNG decoder, single-file 422 status and batch partial success. The test PNG is constructed from a synthetic in-memory fixture by flipping a CRC byte, with no user documents or paid model calls. These changes make 77 tests, with CI evidence pending.

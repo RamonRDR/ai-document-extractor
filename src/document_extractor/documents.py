@@ -87,7 +87,7 @@ def prepare_document(data: bytes, content_type: str | None, max_bytes: int) -> P
             safe_image = buffer.getvalue()
     except DocumentError:
         raise
-    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as exc:
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError) as exc:
         raise DocumentError("Unreadable or corrupt image") from exc
     if len(safe_image) > 15 * 1024 * 1024:
         raise DocumentError("Prepared image exceeds processing limit", 413)

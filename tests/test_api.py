@@ -93,3 +93,33 @@ def test_review_rejects_out_of_range_financial_amount(client: TestClient, png: b
         json={"original": original, "corrected": corrected, "confirmed": True},
     )
     assert response.status_code == 422
+
+
+def test_corrupt_png_returns_controlled_422(
+    client: TestClient, png_with_bad_idat_crc: bytes
+) -> None:
+    response = client.post(
+        "/api/v1/extract",
+        files={"file": ("bad-crc.png", png_with_bad_idat_crc, "image/png")},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Unreadable or corrupt image"
+
+
+def test_batch_isolates_corrupt_png(
+    client: TestClient, png: bytes, png_with_bad_idat_crc: bytes
+) -> None:
+    response = client.post(
+        "/api/v1/batch",
+        files=[
+            ("files", ("good.png", png, "image/png")),
+            ("files", ("bad-crc.png", png_with_bad_idat_crc, "image/png")),
+        ],
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success_count"] == 1
+    assert body["failure_count"] == 1
+    assert body["entries"][0]["success"] is True
+    assert body["entries"][1]["success"] is False
+    assert body["entries"][1]["error"] == "Unreadable or corrupt image"

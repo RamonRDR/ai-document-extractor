@@ -89,3 +89,18 @@ def test_transparent_document_is_composited_on_white(image_mode: str) -> None:
         assert result.mode == "RGB"
         assert result.getpixel((0, 0)) == (255, 255, 255)
         assert result.getpixel((10, 8)) == (0, 0, 0)
+
+
+def test_corrupt_idat_checksum_returns_document_error(png_with_bad_idat_crc: bytes) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    # Pillow can open this header and only raise SyntaxError in verify().
+    with Image.open(BytesIO(png_with_bad_idat_crc)) as image:
+        with pytest.raises(SyntaxError):
+            image.verify()
+
+    with pytest.raises(DocumentError, match="Unreadable or corrupt image") as exc:
+        prepare_document(png_with_bad_idat_crc, "image/png", 5_242_880)
+    assert exc.value.status_code == 422

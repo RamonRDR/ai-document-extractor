@@ -28,3 +28,16 @@ def jpeg() -> bytes:
     buffer = BytesIO()
     image.save(buffer, "JPEG")
     return buffer.getvalue()
+
+
+@pytest.fixture
+def png_with_bad_idat_crc(png: bytes) -> bytes:
+    """A valid PNG whose IDAT CRC has been intentionally corrupted."""
+    data = bytearray(png)
+    marker = data.find(b"IDAT")
+    assert marker > 12
+    chunk_size = int.from_bytes(data[marker - 4 : marker], "big")
+    crc_offset = marker + 4 + chunk_size
+    assert crc_offset + 4 <= len(data)
+    data[crc_offset] ^= 1
+    return bytes(data)
