@@ -64,8 +64,11 @@ async def test_invalid_response() -> None:
             )
         )
     ) as client:
+        provider = OpenAIProvider(settings(), client)
+        provider.last_usage = {"prompt_tokens": 120, "completion_tokens": 80}
         with pytest.raises(ProviderError, match="invalid structured"):
-            await OpenAIProvider(settings(), client).extract(PreparedDocument(b"x", "image/png"))
+            await provider.extract(PreparedDocument(b"x", "image/png"))
+        assert provider.last_usage is None
 
 
 @pytest.mark.asyncio
