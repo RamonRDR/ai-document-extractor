@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-document-extractor"
+version = "0.1.0"
+description = "Human-reviewed structured financial document extraction API"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+license = "MIT"
+authors = [{name = "Ramon Rodriguez"}]
+dependencies = [
+  "fastapi>=0.128,<1",
+  "uvicorn>=0.35,<1",
+  "pydantic>=2.11,<3",
+  "python-multipart>=0.0.20,<1",
+  "httpx>=0.28,<1",
+  "pillow>=11.3,<13",
+  "pypdfium2>=5.14,<6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.4,<10", "pytest-asyncio>=1.2,<2", "ruff>=0.13,<1", "mypy>=1.18,<2", "build>=1.3,<2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/document_extractor"]
+include = ["src/document_extractor/ui.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+files = ["src/document_extractor"]
+warn_unused_ignores = true

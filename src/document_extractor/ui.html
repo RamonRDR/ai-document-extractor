@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Document Extractor</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0d1322;color:#e5edfa}
+body{margin:auto;max-width:950px;padding:2rem 1rem}h1{font-size:2rem}
+article{background:#17243a;padding:1.3rem;border-radius:14px;margin:1.5rem 0;border:1px solid #34425c}
+label{display:block;margin:.6rem 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.8rem}
+input,select,textarea,button{font:inherit;background:#0d1322;color:#e5edfa;padding:.6rem;border:1px solid #64748b;border-radius:7px;box-sizing:border-box;width:100%}
+button{background:#2457be;cursor:pointer;margin:.35rem 0}button:disabled{opacity:.45;cursor:not-allowed}
+textarea{min-height:170px;font-family:monospace}small{color:#bdc9dc}#notice{white-space:pre-wrap}#issues{color:#ffce75;white-space:pre-wrap}a{color:#9ec8ff}
+</style></head><body>
+<h1>AI Document Extractor</h1>
+<p>Financial documents, structured fields and a human decision before export.</p>
+<article>
+<h2>1. Upload</h2>
+<label>Document (one-page PDF, PNG or JPEG)<input id="file" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"></label>
+<label>Mode<select id="mode"><option value="demo">Demo (fictional fixed result, no extraction)</option><option value="openai">OpenAI (real processing, explicit paid opt-in)</option></select></label>
+<button id="extract">Process document</button><p id="notice" role="status"></p>
+</article>
+<article id="review" hidden>
+<h2>2. Human review and correction</h2><p id="issues" role="status"></p>
+<div class="grid">
+<label>Document type<input id="document_type"></label><label>Issuer<input id="issuer_name"></label>
+<label>CNPJ<input id="issuer_cnpj"></label><label>Date (YYYY-MM-DD)<input id="issue_date"></label>
+<label>Number<input id="document_number"></label><label>Currency<input id="currency"></label>
+<label>Subtotal<input id="subtotal"></label><label>Discount<input id="discount"></label>
+<label>Tax<input id="tax"></label><label>Surcharge<input id="surcharge"></label>
+<label>Total<input id="total"></label>
+</div>
+<label>Items JSON (array of line items)<textarea id="items"></textarea></label>
+<label><input type="checkbox" id="confirmed" style="width:auto"> I reviewed and confirm these values</label>
+<button id="validate">Validate corrections</button>
+<h2>3. Export</h2>
+<div class="grid"><button id="json" disabled>Download reviewed JSON</button><button id="csv" disabled>Download CSV</button></div>
+<small>Never upload private documents to a public demo. Live AI sends the image to a third-party provider. This service does not save documents.</small>
+</article>
+<p><a href="/docs">OpenAPI documentation</a></p>
+<script>
+const fields=["document_type","issuer_name","issuer_cnpj","issue_date","document_number","currency","subtotal","discount","tax","surcharge","total"];
+let original=null, reviewed=null, formRevision=0, extractionRevision=0;
+const el=id=>document.getElementById(id);
+const buttons=()=>{const allowed=Boolean(reviewed?.confirmed&&el("confirmed").checked);el("json").disabled=!allowed;el("csv").disabled=!allowed;};
+const invalidateReview=(resetConfirmation=false)=>{
+ formRevision++;reviewed=null;
+ if(resetConfirmation)el("confirmed").checked=false;
+ buttons();
+};
+el("extract").onclick=async()=>{
+ const currentExtraction=++extractionRevision;
+ invalidateReview(true);original=null;el("review").hidden=true;
+ try{
+  const file=el("file").files[0];if(!file)throw Error("Choose a file first.");
+  const body=new FormData();body.append("file",file);body.append("mode",el("mode").value);
+  const r=await fetch("/api/v1/extract",{method:"POST",body});
+  const data=await r.json();if(currentExtraction!==extractionRevision)return;
+  if(!r.ok)throw Error(JSON.stringify(data.detail));
+  original=data;invalidateReview(true);
+  for(const field of fields)el(field).value=data.document[field]??"";
+  el("items").value=JSON.stringify(data.document.items,null,2);
+  el("review").hidden=false;el("notice").textContent=data.notice;
+  el("issues").textContent=data.issues.map(i=>i.field+": "+i.message).join("\n")||"No consistency warnings. Verify against the source anyway.";
+ }catch(e){if(currentExtraction!==extractionRevision)return;el("notice").textContent=e.message;el("review").hidden=true;}
+};
+el("validate").onclick=async()=>{
+ invalidateReview();
+ const currentRevision=formRevision;
+ try{
+  if(!original)throw Error("Extract a document first.");
+  const corrected={...original.document};
+  for(const field of fields)corrected[field]=el(field).value.trim()||null;
+  corrected.items=JSON.parse(el("items").value);
+  corrected.provenance={...original.document.provenance};
+  const r=await fetch("/api/v1/review",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({original,corrected,confirmed:el("confirmed").checked})});
+  const data=await r.json();if(currentRevision!==formRevision)return;
+  if(!r.ok)throw Error(JSON.stringify(data.detail));
+  reviewed=data;buttons();
+  el("issues").textContent=data.issues.map(i=>i.field+": "+i.message).join("\n")||"No consistency warnings. Human review remains essential.";
+  el("notice").textContent=data.confirmed?"Review confirmed. Export is available.":"Check confirmation to enable export.";
+ }catch(e){if(currentRevision!==formRevision)return;reviewed=null;buttons();el("notice").textContent=e.message;}
+};
+for(const kind of ["json","csv"])el(kind).onclick=async()=>{
+ const confirmedReview=reviewed, currentRevision=formRevision;
+ if(!confirmedReview?.confirmed||!el("confirmed").checked)return;
+ const r=await fetch("/api/v1/export/"+kind,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(confirmedReview)});
+ if(currentRevision!==formRevision||reviewed!==confirmedReview)return;
+ if(!r.ok){el("notice").textContent=await r.text();return;}
+ const blob=await r.blob();
+ if(currentRevision!==formRevision||reviewed!==confirmedReview)return;
+ const a=document.createElement("a"), url=URL.createObjectURL(blob);
+ a.href=url;a.download="reviewed-document."+kind;a.click();URL.revokeObjectURL(url);
+};
+for(const id of [...fields,"items","confirmed"]){
+ el(id).addEventListener("input",()=>invalidateReview(id!=="confirmed"));
+}
+el("confirmed").addEventListener("change",()=>invalidateReview());
+</script></body></html>
