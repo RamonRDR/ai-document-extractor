@@ -74,13 +74,16 @@ def prepare_document(data: bytes, content_type: str | None, max_bytes: int) -> P
         with Image.open(BytesIO(image_data)) as image:
             if image.width * image.height > MAX_IMAGE_PIXELS:
                 raise DocumentError("Image pixel limit exceeded", 413)
-            normalized = ImageOps.exif_transpose(image).convert("RGB")
+            # Composite alpha onto opaque white before RGB conversion. Otherwise
+            # transparent pixels with hidden black RGB can obscure black text.
+            oriented = ImageOps.exif_transpose(image)
+            rgba = oriented.convert("RGBA")
+            normalized = Image.new("RGB", rgba.size, "white")
+            normalized.paste(rgba, mask=rgba.getchannel("A"))
             normalized.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
-            # A fresh pixel-only image prevents EXIF/GPS and PNG text propagation.
-            pixels_only = Image.new("RGB", normalized.size)
-            pixels_only.paste(normalized)
+            # Created from pixels only: no EXIF/GPS/PNG metadata is forwarded.
             buffer = BytesIO()
-            pixels_only.save(buffer, format="PNG")
+            normalized.save(buffer, format="PNG")
             safe_image = buffer.getvalue()
     except DocumentError:
         raise

@@ -30,3 +30,7 @@
 ## Codex findings remediation (2026-11-09)
 
 The first explicitly authorized Codex Review of PR #1 reported six issues: upload pre-parser size checking (P1), metadata stripping, Decimal limits, reconciliation without subtotal, stale browser review response and financial validation metric (five P2). The implementation and regression tests were updated in the existing feature branch. The test suite now contains 61 passing tests, confirmed by [green GitHub Actions run 42741844565](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565) with Ruff, mypy, README checks, regression evaluation, packaging and Docker. No additional paid AI call or main merge was made.
+
+## Automatic follow-up Codex findings (2026-11-10)
+
+Codex automatically reviewed commit `a0a53c6` and identified two additional P2 issues: alpha-channel image compositing and decimal-scale equivalence in evaluation scoring. Both received code and regression-test fixes; they are included in the 68-test suite pending the final CI evidence. The paid live provider remains untested by design.

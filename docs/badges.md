@@ -60,3 +60,11 @@
 ## Initial Codex review remediation (2026-11-09)
 
 Six review findings (one P1, five P2) were addressed on the PR branch: pre-parser request-size limit, image EXIF removal, Decimal range guards, subtotal-free reconciliation, stale browser review rejection and financial error metrics. New regression tests increased pytest cases from 46 to **61**. The static badge count was updated across all three README versions. The final remediation [run 42741844565](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565) passed Ruff, mypy, 61 pytest tests, README badge validation, 30-case fixture evaluation, packaging and Docker.
+
+## Second Codex review remediation (2026-11-10)
+
+Two P2 findings from the automatic follow-up review of commit `a0a53c6` were addressed:
+
+- **Transparent PNG legibility:** the renderer now composites images with an alpha channel onto a white opaque canvas before RGB encoding. The three regression cases cover RGBA, grayscale+alpha (LA) and indexed PNG with palette transparency, while retaining EXIF stripping.
+- **Monetary field accuracy:** `evaluation.runner._accuracy` compares non-null monetary totals by numeric `Decimal` value, not serialized scale; regression cases cover equal scales, mismatched totals and missing values.
+- This adds **seven** parameterized cases to the previously green 61-test suite, making **68** tests. All three README badges are kept identical and the JUnit-backed CI verifier is authoritative. No paid model evaluation is performed.

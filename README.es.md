@@ -23,7 +23,7 @@
 ![OpenAI API optional](https://img.shields.io/badge/OpenAI%20API-opt--in%20adapter-5A6872)
 ![Structured outputs](https://img.shields.io/badge/Structured%20Outputs-JSON%20Schema-7E57C2)
 
-![pytest 61 passing](https://img.shields.io/badge/pytest-61%20passing-0A9EDC)
+![pytest 68 passing](https://img.shields.io/badge/pytest-68%20passing-0A9EDC)
 ![pytest-asyncio](https://img.shields.io/badge/pytest--asyncio-enabled-0A9EDC)
 ![Ruff lint and format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
 ![mypy type checked](https://img.shields.io/badge/mypy-type%20checked-2A6DB4)
@@ -170,7 +170,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ~~~
 
-Las **61 pruebas aprobadas** fueron verificadas en [GitHub Actions 42741844565](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565), con todos los controles en verde (61 aprobadas, 0 fallos, 0 omitidas y una advertencia no crítica). Las 30 fixtures ficticias prueban documentos, schemas y reglas, pero **no** miden precisión real de IA ni costes reales. La evaluación de pago es manual y requiere `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, clave y presupuesto positivo. Solo con un **presupuesto ya autorizado**, el comando es `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Es una reserva estimada, **no** un bloqueo de facturación real.
+La suite incluye ahora **68 casos de prueba**. El [workflow de CI](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) ejecuta las pruebas y valida automáticamente la cifra del badge con el informe JUnit. La [ejecución anterior de 61 pruebas](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565) precede las correcciones adicionales. Las 30 fixtures ficticias prueban documentos, schemas y reglas, pero **no** miden precisión real de IA ni costes reales. La evaluación de pago es manual y requiere `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, clave y presupuesto positivo. Solo con un **presupuesto ya autorizado**, el comando es `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Es una reserva estimada, **no** un bloqueo de facturación real.
 
 ## GitHub Actions y mantenimiento de badges
 

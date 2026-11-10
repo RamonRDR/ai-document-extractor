@@ -23,7 +23,7 @@
 ![OpenAI API optional](https://img.shields.io/badge/OpenAI%20API-opt--in%20adapter-5A6872)
 ![Structured outputs](https://img.shields.io/badge/Structured%20Outputs-JSON%20Schema-7E57C2)
 
-![pytest 61 passing](https://img.shields.io/badge/pytest-61%20passing-0A9EDC)
+![pytest 68 passing](https://img.shields.io/badge/pytest-68%20passing-0A9EDC)
 ![pytest-asyncio](https://img.shields.io/badge/pytest--asyncio-enabled-0A9EDC)
 ![Ruff lint and format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
 ![mypy type checked](https://img.shields.io/badge/mypy-type%20checked-2A6DB4)
@@ -170,7 +170,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ~~~
 
-The documented **61 passing tests** were verified in [green GitHub Actions run 42741844565](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565) (61 passed, 0 failed, 0 skipped, one non-fatal warning). The 30 fully fictional fixtures exercise decoding, schemas and financial rules; their report does **not** claim model extraction accuracy or actual model cost. Live provider evaluation is manual, gated by `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, a key and explicit nonzero budget parameters. For an **already authorized** budget, the command shape is `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Budget parameters reserve an operator estimate and do **not** enforce actual vendor billing.
+The regression suite now includes **68 test cases**. The latest [CI workflow](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) runs the tests and validates the exact badge count against JUnit XML; historical [61-test run](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741844565) predates the transparency and money-comparison fixes. The 30 fully fictional fixtures exercise decoding, schemas and financial rules; their report does **not** claim model extraction accuracy or actual model cost. Live provider evaluation is manual, gated by `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, a key and explicit nonzero budget parameters. For an **already authorized** budget, the command shape is `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Budget parameters reserve an operator estimate and do **not** enforce actual vendor billing.
 
 ## GitHub Actions and badge maintenance
 

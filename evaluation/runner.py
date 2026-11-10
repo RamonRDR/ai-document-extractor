@@ -30,7 +30,17 @@ def _accuracy(actual: dict[str, object], expected: dict[str, object]) -> tuple[i
         "currency",
         "total",
     )
-    return (sum(actual.get(field) == expected.get(field) for field in fields), len(fields))
+    matched = 0
+    for field in fields:
+        actual_value = actual.get(field)
+        expected_value = expected.get(field)
+        if field == "total" and actual_value is not None and expected_value is not None:
+            # The structured API serializes Decimal values as strings. 10 and
+            # 10.00 are financially identical despite differing JSON text.
+            matched += int(Decimal(str(actual_value)) == Decimal(str(expected_value)))
+        else:
+            matched += int(actual_value == expected_value)
+    return matched, len(fields)
 
 
 async def evaluate(

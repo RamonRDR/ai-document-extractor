@@ -71,3 +71,32 @@ async def test_live_evaluation_counts_financial_errors(monkeypatch: pytest.Monke
     report = await runner.evaluate("live", 1, 1.0, 0.5)
     assert report["financially_valid_percent"] == 0
     assert report["review_required_percent"] == 100
+
+
+@pytest.mark.parametrize(
+    ("actual_total", "expected_total", "expected_matches"),
+    [
+        ("10.00", "10", 7),
+        ("10.01", "10.00", 6),
+        (None, "10", 6),
+        (None, None, 7),
+    ],
+)
+def test_accuracy_uses_numeric_decimal_equality(
+    actual_total: str | None, expected_total: str | None, expected_matches: int
+) -> None:
+    from evaluation.runner import _accuracy
+
+    base: dict[str, object] = {
+        "document_type": "invoice",
+        "issuer_name": "Synthetic issuer",
+        "issuer_cnpj": None,
+        "issue_date": "2026-01-15",
+        "document_number": "FAKE-001",
+        "currency": "BRL",
+        "total": expected_total,
+    }
+    actual = {**base, "total": actual_total}
+    matched, total_fields = _accuracy(actual, base)
+    assert matched == expected_matches
+    assert total_fields == 7
