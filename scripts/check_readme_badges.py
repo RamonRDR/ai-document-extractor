@@ -63,7 +63,8 @@ def main() -> None:
                 raise SystemExit(f"{name}: missing local link target {local}")
 
     print(
-        f"README audit passed: {len(READMES)} locales, {EXPECTED_BADGES} badges, {passed} real passing tests"
+        f"README audit passed: {len(READMES)} locales, "
+        f"{EXPECTED_BADGES} badges, {passed} real passing tests"
     )
 
 
