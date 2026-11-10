@@ -23,7 +23,8 @@ def main() -> None:
     parser.add_argument("--junitxml", required=True, type=Path)
     args = parser.parse_args()
 
-    xml = ET.parse(args.junitxml)
+    # This is pytest-generated CI output, not untrusted external XML.
+    xml = ET.parse(args.junitxml)  # noqa: S314
     suite = xml.getroot().find(".//testsuite")
     if suite is None:
         raise SystemExit("JUnit XML contains no testsuite")
