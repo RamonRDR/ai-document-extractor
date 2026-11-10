@@ -41,7 +41,7 @@ def main() -> None:
         if text.count(START) != 1 or text.count(END) != 1:
             raise SystemExit(f"{name}: missing or duplicate badge markers")
         section = text.split(START, 1)[1].split(END, 1)[0].strip()
-        count = len(re.findall(r"!\\[[^]]+\\]\\(", section))
+        count = len(re.findall(r"!\[[^]]+\]\(", section))
         if count != EXPECTED_BADGES:
             raise SystemExit(f"{name}: expected {EXPECTED_BADGES} badges, got {count}")
         if f"pytest-{passed}%20passing-" not in section:
@@ -53,7 +53,7 @@ def main() -> None:
         for other in READMES:
             if f"]({other})" not in text:
                 raise SystemExit(f"{name}: missing language link {other}")
-        links = re.findall(r"\\]\\(([^)]+)\\)", text)
+        links = re.findall(r"\]\(([^)]+)\)", text)
         for link in links:
             if link.startswith(("https://", "http://", "#", "mailto:")):
                 continue
