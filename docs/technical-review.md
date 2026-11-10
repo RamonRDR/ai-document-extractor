@@ -8,7 +8,7 @@
 ## Security review
 - Demo mode uses **fixed fictional** values; not OCR, not document extraction.
 - Paid OpenAI path requires both an explicit API mode and environment opt-in. No provider keys are shipped, and no live calls run in CI.
-- Document data is processed only in memory, with file-type, page-count, upload byte and pixel limits. No documents are checked into the repository.
+- The app has no durable document storage, but Starlette may spool multipart uploads into OS temporary files. A bounded ASGI pre-parser checks full request sizes; provider-bound images are rebuilt from pixels to strip EXIF/GPS metadata. See `docs/privacy.md`.
 - User-provided document content is treated as untrusted. The adapter never executes commands from it, and the prompt explicitly ignores embedded instructions.
 - Export requires a confirmed review. CSV fields guard against formula injection.
 - Provider HTTP failures, malformed structured responses and timeouts are mapped to controlled errors.

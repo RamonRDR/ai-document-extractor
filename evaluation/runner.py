@@ -76,6 +76,7 @@ async def evaluate(
         else:
             actual = case.expected
             flagged += int(bool(validate_financial(actual)))
+        # Structural missing/inferred warnings require review; financial errors fail validity.
         valid += int(not any(issue.severity == "error" for issue in validate_financial(actual)))
         checked += 1
     output: dict[str, object] = {

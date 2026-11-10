@@ -38,23 +38,33 @@ textarea{min-height:170px;font-family:monospace}small{color:#bdc9dc}#notice{whit
 <p><a href="/docs">OpenAPI documentation</a></p>
 <script>
 const fields=["document_type","issuer_name","issuer_cnpj","issue_date","document_number","currency","subtotal","discount","tax","surcharge","total"];
-let original=null, reviewed=null;
+let original=null, reviewed=null, formRevision=0, extractionRevision=0;
 const el=id=>document.getElementById(id);
-const buttons=()=>{el("json").disabled=!reviewed?.confirmed;el("csv").disabled=!reviewed?.confirmed;};
+const buttons=()=>{const allowed=Boolean(reviewed?.confirmed&&el("confirmed").checked);el("json").disabled=!allowed;el("csv").disabled=!allowed;};
+const invalidateReview=(resetConfirmation=false)=>{
+ formRevision++;reviewed=null;
+ if(resetConfirmation)el("confirmed").checked=false;
+ buttons();
+};
 el("extract").onclick=async()=>{
+ const currentExtraction=++extractionRevision;
+ invalidateReview(true);original=null;el("review").hidden=true;
  try{
   const file=el("file").files[0];if(!file)throw Error("Choose a file first.");
   const body=new FormData();body.append("file",file);body.append("mode",el("mode").value);
   const r=await fetch("/api/v1/extract",{method:"POST",body});
-  const data=await r.json();if(!r.ok)throw Error(JSON.stringify(data.detail));
-  original=data;reviewed=null;el("confirmed").checked=false;buttons();
+  const data=await r.json();if(currentExtraction!==extractionRevision)return;
+  if(!r.ok)throw Error(JSON.stringify(data.detail));
+  original=data;invalidateReview(true);
   for(const field of fields)el(field).value=data.document[field]??"";
   el("items").value=JSON.stringify(data.document.items,null,2);
   el("review").hidden=false;el("notice").textContent=data.notice;
   el("issues").textContent=data.issues.map(i=>i.field+": "+i.message).join("\n")||"No consistency warnings. Verify against the source anyway.";
- }catch(e){el("notice").textContent=e.message;el("review").hidden=true;}
+ }catch(e){if(currentExtraction!==extractionRevision)return;el("notice").textContent=e.message;el("review").hidden=true;}
 };
 el("validate").onclick=async()=>{
+ invalidateReview();
+ const currentRevision=formRevision;
  try{
   if(!original)throw Error("Extract a document first.");
   const corrected={...original.document};
@@ -62,18 +72,26 @@ el("validate").onclick=async()=>{
   corrected.items=JSON.parse(el("items").value);
   corrected.provenance={...original.document.provenance};
   const r=await fetch("/api/v1/review",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({original,corrected,confirmed:el("confirmed").checked})});
-  const data=await r.json();if(!r.ok)throw Error(JSON.stringify(data.detail));
+  const data=await r.json();if(currentRevision!==formRevision)return;
+  if(!r.ok)throw Error(JSON.stringify(data.detail));
   reviewed=data;buttons();
   el("issues").textContent=data.issues.map(i=>i.field+": "+i.message).join("\n")||"No consistency warnings. Human review remains essential.";
   el("notice").textContent=data.confirmed?"Review confirmed. Export is available.":"Check confirmation to enable export.";
- }catch(e){reviewed=null;buttons();el("notice").textContent=e.message;}
+ }catch(e){if(currentRevision!==formRevision)return;reviewed=null;buttons();el("notice").textContent=e.message;}
 };
 for(const kind of ["json","csv"])el(kind).onclick=async()=>{
- if(!reviewed?.confirmed)return;
- const r=await fetch("/api/v1/export/"+kind,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(reviewed)});
+ const confirmedReview=reviewed, currentRevision=formRevision;
+ if(!confirmedReview?.confirmed||!el("confirmed").checked)return;
+ const r=await fetch("/api/v1/export/"+kind,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(confirmedReview)});
+ if(currentRevision!==formRevision||reviewed!==confirmedReview)return;
  if(!r.ok){el("notice").textContent=await r.text();return;}
- const a=document.createElement("a"), url=URL.createObjectURL(await r.blob());
+ const blob=await r.blob();
+ if(currentRevision!==formRevision||reviewed!==confirmedReview)return;
+ const a=document.createElement("a"), url=URL.createObjectURL(blob);
  a.href=url;a.download="reviewed-document."+kind;a.click();URL.revokeObjectURL(url);
 };
-for(const id of [...fields,"items","confirmed"])el(id).addEventListener("input",()=>{reviewed=null;buttons();});
+for(const id of [...fields,"items","confirmed"]){
+ el(id).addEventListener("input",()=>invalidateReview(id!=="confirmed"));
+}
+el("confirmed").addEventListener("change",()=>invalidateReview());
 </script></body></html>

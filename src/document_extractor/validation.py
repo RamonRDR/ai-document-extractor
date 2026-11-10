@@ -1,6 +1,6 @@
 """Financial cross-checks are advisory, never invented corrections."""
 
-from decimal import Decimal
+from decimal import Decimal, localcontext
 
 from .finance import valid_cnpj
 from .schemas import FinancialDocument, Issue, Origin
@@ -13,6 +13,13 @@ def _cents(value: Decimal) -> Decimal:
 
 
 def validate_financial(document: FinancialDocument) -> list[Issue]:
+    # Quantity * unit price and sums of 100 items can exceed default precision.
+    with localcontext() as context:
+        context.prec = 64
+        return _validate_financial(document)
+
+
+def _validate_financial(document: FinancialDocument) -> list[Issue]:
     issues: list[Issue] = []
 
     for field in ("document_type", "issuer_name", "issue_date", "total"):
@@ -21,13 +28,23 @@ def validate_financial(document: FinancialDocument) -> list[Issue]:
 
     if document.issuer_cnpj and not valid_cnpj(document.issuer_cnpj):
         issues.append(
-            Issue(code="invalid_cnpj", field="issuer_cnpj", message="CNPJ check digits invalid")
+            Issue(
+                code="invalid_cnpj",
+                field="issuer_cnpj",
+                message="CNPJ check digits invalid",
+                severity="error",
+            )
         )
 
     for field in ("subtotal", "discount", "tax", "surcharge", "total"):
         value = getattr(document, field)
         if value is not None and value < 0:
-            issues.append(Issue(code="negative_amount", field=field, message="Negative amount"))
+            issues.append(Issue(
+                    code="negative_amount",
+                    field=field,
+                    message="Negative amount",
+                    severity="error",
+                ))
 
     for index, item in enumerate(document.items):
         if item.quantity is not None and item.quantity <= 0:
@@ -36,6 +53,7 @@ def validate_financial(document: FinancialDocument) -> list[Issue]:
                     code="invalid_quantity",
                     field=f"items[{index}].quantity",
                     message="Quantity must be positive",
+                    severity="error",
                 )
             )
         if item.unit_price is not None and item.unit_price < 0:
@@ -44,12 +62,16 @@ def validate_financial(document: FinancialDocument) -> list[Issue]:
                     code="negative_amount",
                     field=f"items[{index}].unit_price",
                     message="Negative amount",
+                    severity="error",
                 )
             )
         if item.total is not None and item.total < 0:
             issues.append(
                 Issue(
-                    code="negative_amount", field=f"items[{index}].total", message="Negative amount"
+                    code="negative_amount",
+                    field=f"items[{index}].total",
+                    message="Negative amount",
+                    severity="error",
                 )
             )
         if item.quantity is not None and item.unit_price is not None and item.total is not None:
@@ -59,6 +81,7 @@ def validate_financial(document: FinancialDocument) -> list[Issue]:
                         code="item_mismatch",
                         field=f"items[{index}].total",
                         message="Quantity × unit price differs from item total",
+                        severity="error",
                     )
                 )
 
@@ -71,19 +94,26 @@ def validate_financial(document: FinancialDocument) -> list[Issue]:
                     code="subtotal_mismatch",
                     field="subtotal",
                     message="Sum of items differs from subtotal",
+                    severity="error",
                 )
             )
-        elif (
-            document.subtotal is None
-            and document.total is not None
-            and all(getattr(document, name) is None for name in ("discount", "tax", "surcharge"))
-            and _cents(items_sum) != _cents(document.total)
-        ):
-            issues.append(
-                Issue(
-                    code="total_mismatch", field="total", message="Sum of items differs from total"
-                )
+        if document.subtotal is None and document.total is not None:
+            # Reconcile against the item sum without inventing an extracted subtotal.
+            expected_from_items = (
+                items_sum
+                - (document.discount or Decimal(0))
+                + (document.tax or Decimal(0))
+                + (document.surcharge or Decimal(0))
             )
+            if _cents(expected_from_items) != _cents(document.total):
+                issues.append(
+                    Issue(
+                        code="total_mismatch",
+                        field="total",
+                        message="Items and available adjustments do not match total",
+                        severity="error",
+                    )
+                )
 
     if document.subtotal is not None and document.total is not None:
         expected = (
@@ -98,6 +128,7 @@ def validate_financial(document: FinancialDocument) -> list[Issue]:
                     code="total_mismatch",
                     field="total",
                     message="Subtotal and adjustments do not match total",
+                    severity="error",
                 )
             )
 

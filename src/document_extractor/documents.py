@@ -1,4 +1,4 @@
-"""Validate magic bytes and decode a single-page document without disk I/O."""
+"""Validate files and normalize a single-page image without persistent storage."""
 
 from dataclasses import dataclass
 from io import BytesIO
@@ -76,8 +76,11 @@ def prepare_document(data: bytes, content_type: str | None, max_bytes: int) -> P
                 raise DocumentError("Image pixel limit exceeded", 413)
             normalized = ImageOps.exif_transpose(image).convert("RGB")
             normalized.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+            # A fresh pixel-only image prevents EXIF/GPS and PNG text propagation.
+            pixels_only = Image.new("RGB", normalized.size)
+            pixels_only.paste(normalized)
             buffer = BytesIO()
-            normalized.save(buffer, format="PNG")
+            pixels_only.save(buffer, format="PNG")
             safe_image = buffer.getvalue()
     except DocumentError:
         raise

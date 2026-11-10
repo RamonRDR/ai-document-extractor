@@ -42,3 +42,22 @@ def test_upload_limit(png: bytes) -> None:
     with pytest.raises(DocumentError) as exc:
         prepare_document(png, "image/png", 10)
     assert exc.value.status_code == 413
+
+
+def test_image_metadata_is_stripped_before_provider_payload() -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    secret = "PRIVATE_GPS_REFERENCE_123456789"
+    picture = Image.new("RGB", (100, 75), "white")
+    exif = Image.Exif()
+    exif[270] = secret  # ImageDescription
+    stream = BytesIO()
+    picture.save(stream, "JPEG", exif=exif)
+    assert secret.encode() in stream.getvalue()
+    rendered = prepare_document(stream.getvalue(), "image/jpeg", 5_242_880)
+    assert secret.encode() not in rendered.image
+    with Image.open(BytesIO(rendered.image)) as normalized:
+        assert normalized.getexif().get(270) is None
+        assert normalized.size == (100, 75)

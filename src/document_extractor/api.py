@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse, Response
 
 from .documents import DocumentError
 from .providers import ProviderError
+from .request_limits import UploadRequestLimitMiddleware
 from .schemas import BatchEntry, BatchResult, ExtractionResult, Item, ReviewRequest, ReviewResult
 from .service import extract_document
 from .settings import Settings
@@ -21,6 +22,7 @@ app = FastAPI(
     version="0.1.0",
     description="One-page financial extraction with transparent demo mode and human review.",
 )
+app.add_middleware(UploadRequestLimitMiddleware)
 
 
 @app.get("/health")

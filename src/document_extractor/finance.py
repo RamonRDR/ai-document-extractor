@@ -3,6 +3,10 @@
 import re
 from decimal import Decimal, InvalidOperation
 
+# Bounded contracts prevent quantize overflow and abusive extreme precision.
+MAX_INTEGER_DIGITS = 12
+MAX_DECIMAL_PLACES = 6
+
 
 def parse_money(value: object) -> Decimal | None:
     """Parse common BRL/US formatted amounts without float conversion."""
@@ -21,7 +25,7 @@ def parse_money(value: object) -> Decimal | None:
         negative = text.startswith("-")
         if negative:
             text = text[1:]
-        if not text or any(char not in "0123456789,." for char in text):
+        if len(text) > 40 or not text or any(char not in "0123456789,." for char in text):
             raise ValueError("Invalid monetary format")
         if "." in text and "," in text:
             if text.rfind(",") > text.rfind("."):
@@ -42,6 +46,10 @@ def parse_money(value: object) -> Decimal | None:
         raise ValueError("Use decimal strings for monetary amounts")
     if not result.is_finite():
         raise ValueError("Non-finite decimal value")
+    if result.adjusted() >= MAX_INTEGER_DIGITS:
+        raise ValueError("Decimal magnitude exceeds supported range")
+    if result.as_tuple().exponent < -MAX_DECIMAL_PLACES:
+        raise ValueError("Decimal precision exceeds six fractional places")
     return result
 
 

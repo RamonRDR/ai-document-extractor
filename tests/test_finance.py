@@ -91,3 +91,71 @@ def test_invalid_quantity_and_negative() -> None:
     codes = {i.code for i in validate_financial(doc)}
     assert "invalid_quantity" in codes
     assert "negative_amount" in codes
+
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "123456789012345678901234567890.00",
+        "1000000000000.00",
+        "0.1234567",
+        "1" * 1000,
+    ],
+)
+def test_extreme_decimal_values_are_rejected(value: str) -> None:
+    with pytest.raises(ValueError):
+        parse_money(value)
+    with pytest.raises(ValidationError):
+        FinancialDocument(subtotal=value)
+
+
+def test_large_but_bounded_items_do_not_crash_financial_validation() -> None:
+    document = FinancialDocument(
+        document_type="invoice",
+        issuer_name="Synthetic example",
+        issue_date="2026-01-15",
+        subtotal="999999999999.00",
+        total="999999999999.00",
+        items=[
+            {
+                "description": "Large synthetic item",
+                "quantity": "999999999999.999999",
+                "unit_price": "999999999999.999999",
+                "total": "999999999999.00",
+            }
+        ],
+    )
+    issues = validate_financial(document)
+    assert any(issue.code == "item_mismatch" for issue in issues)
+    assert any(issue.severity == "error" for issue in issues)
+
+
+@pytest.mark.parametrize(
+    ("discount", "tax", "surcharge", "total"),
+    [("10", None, None, "999"), ("10", "5", "1", "999"), ("10", None, None, "90")],
+)
+def test_item_total_reconciliation_without_subtotal(
+    discount: str, tax: str | None, surcharge: str | None, total: str
+) -> None:
+    document = FinancialDocument(
+        items=[{"description": "Service", "quantity": "1", "unit_price": "100", "total": "100"}],
+        subtotal=None,
+        discount=discount,
+        tax=tax,
+        surcharge=surcharge,
+        total=total,
+    )
+    issues = validate_financial(document)
+    expected_bad = total != "90"
+    assert any(issue.code == "total_mismatch" for issue in issues) == expected_bad
+
+
+def test_financial_issue_severity_distinguishes_missing_from_invalid() -> None:
+    invalid = FinancialDocument(issuer_cnpj="11.222.333/0001-82", total="-1")
+    result = validate_financial(invalid)
+    assert {issue.code for issue in result if issue.severity == "error"} == {
+        "invalid_cnpj",
+        "negative_amount",
+    }
+    assert any(issue.code == "missing" and issue.severity == "warning" for issue in result)

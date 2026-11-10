@@ -82,3 +82,15 @@ def test_csv_formula_injection(client: TestClient, png: bytes) -> None:
     result = client.post("/api/v1/export/csv", json=payload)
     assert result.status_code == 200
     assert "'=HYPERLINK" in result.text
+
+
+
+def test_review_rejects_out_of_range_financial_amount(client: TestClient, png: bytes) -> None:
+    original = _upload(client, png)
+    corrected = dict(original["document"])
+    corrected["subtotal"] = "123456789012345678901234567890.00"
+    response = client.post(
+        "/api/v1/review",
+        json={"original": original, "corrected": corrected, "confirmed": True},
+    )
+    assert response.status_code == 422
