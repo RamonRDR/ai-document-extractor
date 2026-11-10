@@ -23,7 +23,7 @@
 ![OpenAI API optional](https://img.shields.io/badge/OpenAI%20API-opt--in%20adapter-5A6872)
 ![Structured outputs](https://img.shields.io/badge/Structured%20Outputs-JSON%20Schema-7E57C2)
 
-![pytest 46 passing](https://img.shields.io/badge/pytest-46%20passing-0A9EDC)
+![pytest 61 passing](https://img.shields.io/badge/pytest-61%20passing-0A9EDC)
 ![pytest-asyncio](https://img.shields.io/badge/pytest--asyncio-enabled-0A9EDC)
 ![Ruff lint and format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
 ![mypy type checked](https://img.shields.io/badge/mypy-type%20checked-2A6DB4)
@@ -36,7 +36,7 @@
 
 </div>
 
-> **Estado do projeto:** implementação no [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1), aguardando autorização explícita para Codex Review e merge. O [CI da branch de desenvolvimento](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) está verde. Sem deploy ou pacote publicado.
+> **Estado do projeto:** implementação no [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1), com os seis apontamentos iniciais do Codex corrigidos na branch; aguardando revisão complementar e autorização para merge. O [CI da branch de desenvolvimento](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) está verde. Sem deploy ou pacote publicado.
 
 ## Visão geral
 
@@ -170,7 +170,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ~~~
 
-Os **46 testes aprovados** vêm da [execução 42407900020 do GitHub Actions](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42407900020) (46 aprovados, 0 falhas, 0 ignorados, um aviso). As 30 fixtures fictícias cobrem arquivos, schemas e regras financeiras; **não** medem acurácia de extração de IA nem custo real. A avaliação paga é manual, exigindo `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, chave e orçamento explícito não nulo. Somente com **orçamento já autorizado**, o comando segue o formato `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Os parâmetros são reserva estimada, **não** limite de cobrança do provedor.
+Os **61 testes aprovados** foram executados no [GitHub Actions 42741615175](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741615175) (61 aprovados, 0 falhas, 0 ignorados, um aviso; a execução parou depois apenas pelo badge antigo, agora corrigido). As 30 fixtures fictícias cobrem arquivos, schemas e regras financeiras; **não** medem acurácia de extração de IA nem custo real. A avaliação paga é manual, exigindo `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, chave e orçamento explícito não nulo. Somente com **orçamento já autorizado**, o comando segue o formato `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Os parâmetros são reserva estimada, **não** limite de cobrança do provedor.
 
 ## GitHub Actions e manutenção dos badges
 
@@ -180,7 +180,7 @@ O **badge pytest é estático e auditável**: [`scripts/check_readme_badges.py`]
 
 ## Segurança e privacidade
 
-Conteúdo de documentos é entrada não confiável; nenhuma instrução extraída vira comando executável. Validação de formato/MIME, páginas, bytes/pixels, timeout e prevenção de fórmulas no CSV reduzem riscos. O processamento não persiste documentos. Nenhum segredo, documento financeiro real, chamada paga ou publicação foi incluído. Consulte o [modelo de privacidade e ameaças](docs/privacy.md).
+Conteúdo de documentos é entrada não confiável; nenhuma instrução extraída vira comando executável. Validação de formato/MIME, páginas, bytes/pixels, timeout e prevenção de fórmulas no CSV reduzem riscos. A aplicação não armazena documentos de forma definitiva, mas o parser multipart do Starlette pode usar arquivos temporários no disco. Um middleware limita o tamanho total antes do parser; as imagens enviadas ao provedor têm metadados EXIF/GPS eliminados. Nenhum segredo, documento financeiro real, chamada paga ou publicação foi incluído. Consulte o [modelo de privacidade e ameaças](docs/privacy.md).
 
 ## Limitações conhecidas e evoluções
 
@@ -201,7 +201,7 @@ Somente uma página; sem autenticação, rate limiting, antivírus, isolamento d
 
 ## Contribuições
 
-Abra issue ou PR descrevendo a proposta; mantenha testes e três idiomas consistentes. Execute Ruff, mypy e pytest antes. Não comite documentos pessoais, tokens ou segredos. O [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1) aguarda Codex Review final autorizado e posterior merge autorizado.
+Abra issue ou PR descrevendo a proposta; mantenha testes e três idiomas consistentes. Execute Ruff, mypy e pytest antes. Não comite documentos pessoais, tokens ou segredos. O [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1) já recebeu Codex Review com seis apontamentos corrigidos e aguarda conferência complementar e merge autorizado.
 
 ## Licença
 

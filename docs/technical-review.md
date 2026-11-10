@@ -26,3 +26,7 @@
 3. No Codex Review request until explicit user approval.
 4. Correct any eventual reviewer issues and repeat CI.
 5. Merge only after explicit user approval.
+
+## Codex findings remediation (2026-11-09)
+
+The first explicitly authorized Codex Review of PR #1 reported six issues: upload pre-parser size checking (P1), metadata stripping, Decimal limits, reconciliation without subtotal, stale browser review response and financial validation metric (five P2). The implementation and regression tests were updated in the existing feature branch. The test suite now contains 61 passing tests (GitHub Actions run 42741615175), followed by README badge synchronization and final CI validation. No additional paid AI call or main merge was made.

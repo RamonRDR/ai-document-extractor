@@ -2,7 +2,7 @@
 
 **Scope:** `RamonRDR/ai-document-extractor`, PR #1 development branch. Audited from actual `pyproject.toml`, `src/`, `tests/`, `Dockerfile`, `LICENSE`, both Actions workflows, README files and the green [run 42407900020](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42407900020).
 
-**Baseline:** 46 pytest passed, 0 failed, 0 skipped, 1 non-fatal warning. Synthetic evaluation validated 30 fictional fixtures. No real AI extraction accuracy, coverage percentage or provider billing measured.
+**Updated regression result:** 61 pytest passed, 0 failed, 0 skipped, 1 non-fatal warning. Synthetic evaluation validated 30 fictional fixtures. No real AI extraction accuracy, coverage percentage or provider billing measured.
 
 | Category | Technology / check | Badge | Evidence and qualification |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@
 | Stack / Infrastructure | Docker build | Yes | Dockerfile; .github/workflows/ci.yml docker job success |
 | AI / Integration | OpenAI API (opt-in adapter, live unverified) | Yes | providers.py OpenAIProvider; service.py ALLOW_PAID_AI gate; no paid E2E |
 | AI / Integration | Structured outputs JSON Schema | Yes | providers.py response_json_schema() and JSON schema request; mocked integration test |
-| Quality / Documentation | pytest 46 passing | Yes | GitHub Actions run 42407900020 verify logs: 46 passed, 1 warning, 0 failed/skipped |
+| Quality / Documentation | pytest 46 passing | Yes | GitHub Actions run 42741615175 verify logs: 61 passed, 1 warning, 0 failed/skipped; old badge count caused the subsequent documentation check to fail |
 | Quality / Documentation | pytest-asyncio | Yes | pyproject.toml pytest-asyncio>=1.2,<2; async tests |
 | Quality / Documentation | Ruff lint & format | Yes | ci.yml ruff check + format --check; green run |
 | Quality / Documentation | mypy type checked | Yes | ci.yml mypy --ignore-missing-imports; strict tool.mypy; green run |
@@ -56,3 +56,7 @@
 - [x] CI verified for README/badge validation: [run 42738578529](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42738578529), 46 pytest passes, three locales, 21 badges and green Docker build.
 
 **Review policy:** no Codex Review requested without explicit approval; no merge performed.
+
+## Initial Codex review remediation (2026-11-09)
+
+Six review findings (one P1, five P2) were addressed on the PR branch: pre-parser request-size limit, image EXIF removal, Decimal range guards, subtotal-free reconciliation, stale browser review rejection and financial error metrics. New regression tests increased pytest cases from 46 to **61**. The static badge count was updated across all three README versions. The final green CI for this remediation must be recorded when available.

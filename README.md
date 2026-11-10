@@ -23,7 +23,7 @@
 ![OpenAI API optional](https://img.shields.io/badge/OpenAI%20API-opt--in%20adapter-5A6872)
 ![Structured outputs](https://img.shields.io/badge/Structured%20Outputs-JSON%20Schema-7E57C2)
 
-![pytest 46 passing](https://img.shields.io/badge/pytest-46%20passing-0A9EDC)
+![pytest 61 passing](https://img.shields.io/badge/pytest-61%20passing-0A9EDC)
 ![pytest-asyncio](https://img.shields.io/badge/pytest--asyncio-enabled-0A9EDC)
 ![Ruff lint and format](https://img.shields.io/badge/Ruff-lint%20%26%20format-D7FF64)
 ![mypy type checked](https://img.shields.io/badge/mypy-type%20checked-2A6DB4)
@@ -36,7 +36,7 @@
 
 </div>
 
-> **Project status:** Implementation in [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1), awaiting explicitly authorized Codex Review and merge. [CI for the development branch](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) is green. No deployment or published package.
+> **Project status:** Implementation in [PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1), with six initial Codex findings addressed in the PR branch; awaiting follow-up review and authorized merge. [CI for the development branch](https://github.com/RamonRDR/ai-document-extractor/actions/workflows/ci.yml?query=branch%3Afeat%2Fdocument-extractor-full-implementation) is green. No deployment or published package.
 
 ## Overview
 
@@ -170,7 +170,7 @@ python -m evaluation.runner --mode fixture --report evaluation-report.json
 python -m build
 ~~~
 
-The documented **46 passing tests** come from [GitHub Actions run 42407900020](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42407900020) (46 passed, 0 failed, 0 skipped, one warning). The 30 fully fictional fixtures exercise decoding, schemas and financial rules; their report does **not** claim model extraction accuracy or actual model cost. Live provider evaluation is manual, gated by `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, a key and explicit nonzero budget parameters. For an **already authorized** budget, the command shape is `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Budget parameters reserve an operator estimate and do **not** enforce actual vendor billing.
+The documented **61 passing tests** were executed in [GitHub Actions run 42741615175](https://github.com/RamonRDR/ai-document-extractor/actions/runs/42741615175) (61 passed, 0 failed, 0 skipped, one warning; that run subsequently stopped at the stale badge check, since corrected). The 30 fully fictional fixtures exercise decoding, schemas and financial rules; their report does **not** claim model extraction accuracy or actual model cost. Live provider evaluation is manual, gated by `EVAL_LIVE=1`, `ALLOW_PAID_AI=1`, a key and explicit nonzero budget parameters. For an **already authorized** budget, the command shape is `python -m evaluation.runner --mode live --max-documents 3 --max-usd-per-document 0.20 --budget-usd 0.60`. Budget parameters reserve an operator estimate and do **not** enforce actual vendor billing.
 
 ## GitHub Actions and badge maintenance
 
@@ -180,7 +180,7 @@ The **pytest badge is static and auditable**: [`scripts/check_readme_badges.py`]
 
 ## Security and privacy
 
-Treat document contents as untrusted; model prompts are instructions only to the provider, never executable actions. File type, MIME, page count, byte/pixel bounds, provider timeout and formula-injection protection reduce risk. Requests are processed without persistent document storage. No secrets, genuine financial documents, paid calls or publication are bundled. Review the [privacy/threat model](docs/privacy.md) before sharing or running the service.
+Treat document contents as untrusted; model prompts are instructions only to the provider, never executable actions. File type, MIME, page count, byte/pixel bounds, provider timeout and formula-injection protection reduce risk. Requests are processed without durable document storage. **Starlette may spool multipart file parts temporarily to the OS disk**; a bounded ASGI request-size gate runs before multipart parsing, and normalized provider-bound images have EXIF/GPS metadata stripped. No secrets, genuine financial documents, paid calls or publication are bundled. Review the [privacy/threat model](docs/privacy.md) before sharing or running the service.
 
 ## Known limitations and future work
 
@@ -201,7 +201,7 @@ One page only; no authentication, rate limiter, malware scanner, sandboxed PDF w
 
 ## Contributing
 
-Open an issue or PR describing the proposed change; keep tests, documentation and all language versions aligned. Run Ruff, mypy and pytest first. Never commit personal financial data, tokens or secrets. The [project PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1) is awaiting an explicitly approved final Codex Review, then an authorized merge.
+Open an issue or PR describing the proposed change; keep tests, documentation and all language versions aligned. Run Ruff, mypy and pytest first. Never commit personal financial data, tokens or secrets. The [project PR #1](https://github.com/RamonRDR/ai-document-extractor/pull/1) has addressed the six findings from the initial Codex Review and awaits follow-up verification and an authorized merge.
 
 ## License
 
